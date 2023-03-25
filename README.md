@@ -7,3 +7,4 @@ Replace original electronics with open source, easy-to-repair hardware
 ## Documentation
 
 * [Product Requirement Document](./docs/PRD.md)
+* [Concept](./docs/concept.md)
