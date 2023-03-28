@@ -39,7 +39,7 @@ The user might still wish to manually open and close the door.  This can be done
 * easy to install and to remove.
 
 ## Electronics
-* standalone, no wiring to power socket
+* Two power options: through DC-jack or battery powered.
 * minimum number of components
 
 ## Functionality
@@ -51,11 +51,16 @@ The user might still wish to manually open and close the door.  This can be done
 1. Central button : wakes up the web server
 2. Buttons on either side of the central button are only for manual control of the door.
 
+### LED functionality
+1. Blink RED when power is low and battery needs to be replaced.
+2. Blink GREEN when door is moving.
+
 ### Normal operation
 Door opens/closes in three modes:
   * Mode 1 : user pushes up/down
   * Mode 2 : automatical by sunset, sunrise control
   * Mode 3 : automatical by preset time
+Door must stop when it hits a chicken before the end of the travel.
 
 # Release Criteria
 ...performance baseline
