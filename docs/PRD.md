@@ -24,9 +24,12 @@ Design a device that can pull-up and lower a chicken door, and that can be easil
 # Scope
 The original design allows to control the door manually, based on sunlight and based on preset times.  These features should be present as well.
 
-The original design requires to enter the time by pushing buttons.  This is not very user friendly.  The device can be setup as webserver and controlled via a web interface.  Time and date can be taken from the smartphone.
+The original design requires to enter the time by pushing buttons.  This is not very user friendly.  
+The device can be setup as webserver and controlled via a web interface.  Time and date can be taken from the smartphone.
 
 The original design has a CdS light sensor, which is not RoHS compliant.  By combining the current time and date with the geolocation of the device.  The device can determine the sunrise and sunset time, and can open and close the door accordingly.  The geolocation can be taken from the smartphone, avoiding the need for a GPS module or the user having to enter the location manually. 
+
+The current chickenguard has no clue how far the door is open.  There are no limit switches etc.  The user has to manually configure the top and bottom positions of the door.  This design will automatically detect door position based on the measured motor current.
 
 The user might still wish to manually open and close the door.  This can be done via the push buttons.
 

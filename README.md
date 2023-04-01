@@ -23,9 +23,10 @@ Replace original electronics with open source, easy-to-repair hardware.
 
 * [Product Requirement Document](./docs/PRD.md)
 * [Concept](./docs/concept.md)
+* [Technical study](./docs/technical-study.ipynb)
 
 ## Prior Art
 * [Peno64 ChickenGuard](https://github.com/peno64/ChickenGuard/blob/master/ChickenGuard.ino)
 * [JP_chickenDoor](https://github.com/f2knpw/JP_chickenDoor/blob/master/JP_ESP32_ChickenDoor_wifi_IRsensor_Arduino.ino)
 * [ChickenGuard](https://www.chickenguard.be/)
-  * Uses a PIC18F14K22, an RTC with external 32.768kHz crystal and an SOIC8 motor driver.
+  * Uses an 8bit MCU (PIC18F14K22), an external RTC with 32.768kHz crystal and an SOIC8 motor driver.
