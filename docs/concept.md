@@ -15,7 +15,7 @@ MCU can't deliver enough current.  Added features such a measuring motor current
 This includes logic so that only one power source is active at a time.  No current can flow from one power source to the other.
 
 ### LDO 5V, low Iq
-* This is a pre-regulator for the 3V3-LDO.  Because it's always on, it needs a low quiescent current (Iq (1µA))
+* This is a pre-regulator for the 3V3-LDO.  Because it's always on, it needs a low quiescent current (Iq), about 1µA.
 * The high input voltage range of this LDO protects the 3V3-LDO, which follows it.
 * The output current of this low Iq LDO is limited, so it should only power the MCU while in sleep mode.  Once the MCU awakes, it should switch on the high-current LDO.
 
@@ -39,7 +39,7 @@ As the display needs 5V and it has a parallel interface, this would occupy lots 
 Alternatively, an I²C-IO-expander will be used, powered from 5V.  Now, only the two I²C-lines need to be level translated.
 
 ## Buttons
-Nothing more than standard 6x6mm momentary push buttons.
+3 standard momentary push buttons.
 
 ## LED
-Bicolor LED : red and green.
+Single color red, or bicolor red-green

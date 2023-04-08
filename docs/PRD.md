@@ -42,7 +42,7 @@ The user might still wish to manually open and close the door.  This can be done
 * easy to install and to remove.
 
 ## Electronics
-* Two power options: through DC-jack or battery powered.
+* Two power options: through USB-jack or battery powered.
 * minimum number of components
 
 ## Functionality
@@ -56,7 +56,7 @@ The user might still wish to manually open and close the door.  This can be done
 
 ### LED functionality
 1. Blink RED when power is low and battery needs to be replaced.
-2. Blink GREEN when door is moving.
+2. Optional : Blink GREEN when door is moving.
 
 ### Normal operation
 Door opens/closes in three modes:

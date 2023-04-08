@@ -1,4 +1,6 @@
-*.Zip
-*Preview
+*.Annotation
 *.Harness
+*.LOG
+*Preview
 *.PrjPcbStructure
+*.Zip
