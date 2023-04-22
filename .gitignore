@@ -1,6 +1,9 @@
 *.Annotation
+*.drc
 *.Harness
+*.html
 *.LOG
 *Preview
 *.PrjPcbStructure
 *.Zip
+
