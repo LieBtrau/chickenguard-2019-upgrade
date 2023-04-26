@@ -316,92 +316,100 @@ Variation1=Designator=HY200|UniqueId=\XJFZMWEF\SMESPKNS|Kind=1|AlternatePart=
 ParamVariationCount=0
 
 [GeneratedDocument1]
-DocumentPath=https://7c7engineering-my.sharepoint.com/personal/christoph_7c7engineering_com/Documents/Documents/github/chickenguard-2019-upgrade/hardware/src/chickenguard-upgrade/Project Outputs for chickenguard-upgrade/Board assembly output/BOM/KIPGRD_E1.00A__BOM.xlsx
+DocumentPath=https://7c7engineering-my.sharepoint.com/personal/christoph_7c7engineering_com/Documents/Documents/github/chickenguard-2019-upgrade/hardware/chickenguard-upgrade/Project Outputs for chickenguard-upgrade/Board assembly output/BOM/KIPGRD_E1.01A__BOM.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument2]
-DocumentPath=Project Outputs for chickenguard-upgrade\Design Rule Check - KIPGRDMCU.html
+DocumentPath=https://7c7engineering-my.sharepoint.com/personal/christoph_7c7engineering_com/Documents/Documents/github/chickenguard-2019-upgrade/hardware/src/chickenguard-upgrade/Project Outputs for chickenguard-upgrade/Board assembly output/BOM/KIPGRD_E1.00A__BOM.xlsx
 DItemRevisionGUID=
 
 [GeneratedDocument3]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00-RoundHoles.TXT
+DocumentPath=Project Outputs for chickenguard-upgrade\Design Rule Check - KIPGRDMCU.html
 DItemRevisionGUID=
 
 [GeneratedDocument4]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00-SlotHoles.TXT
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00-RoundHoles.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument5]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.DRR
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00-SlotHoles.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument6]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.EXTREP
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.DRR
 DItemRevisionGUID=
 
 [GeneratedDocument7]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.G1
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.EXTREP
 DItemRevisionGUID=
 
 [GeneratedDocument8]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.G2
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.G1
 DItemRevisionGUID=
 
 [GeneratedDocument9]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBL
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.G2
 DItemRevisionGUID=
 
 [GeneratedDocument10]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBO
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBL
 DItemRevisionGUID=
 
 [GeneratedDocument11]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBS
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBO
 DItemRevisionGUID=
 
 [GeneratedDocument12]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GM
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GBS
 DItemRevisionGUID=
 
 [GeneratedDocument13]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTL
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GM
 DItemRevisionGUID=
 
 [GeneratedDocument14]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTO
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTL
 DItemRevisionGUID=
 
 [GeneratedDocument15]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTS
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTO
 DItemRevisionGUID=
 
 [GeneratedDocument16]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.LDP
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.GTS
 DItemRevisionGUID=
 
 [GeneratedDocument17]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.REP
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.LDP
 DItemRevisionGUID=
 
 [GeneratedDocument18]
-DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.RUL
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.REP
 DItemRevisionGUID=
 
 [GeneratedDocument19]
+DocumentPath=Project Outputs for chickenguard-upgrade\Board manufacturing output (GBR)\E1.00\KIPGRD_E1.00.RUL
+DItemRevisionGUID=
+
+[GeneratedDocument20]
 DocumentPath=Project Outputs for chickenguard-upgrade\Board assembly output\Pick Place\KIPGRD_E1.00A__Pick Place.csv
 DItemRevisionGUID=
 
+[GeneratedDocument21]
+DocumentPath=Project Outputs for chickenguard-upgrade\Board assembly output\Pick Place\KIPGRD_E1.01A__Pick Place.csv
+DItemRevisionGUID=
+
 [Parameter1]
-Name=board_name
-Value=KIPGRD
+Name=project_revision
+Value=E1.01
 
 [Parameter2]
 Name=Project_link
 Value=https://github.com/LieBtrau/chickenguard-2019-upgrade/
 
 [Parameter3]
-Name=project_revision
-Value=E1.00
+Name=board_name
+Value=KIPGRD
 
 [Configuration1]
 Name=Sources
