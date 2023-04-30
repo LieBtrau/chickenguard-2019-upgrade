@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2023
  * 
  * https://docs.espressif.com/projects/esp-idf/en/v4.3/esp32c3/api-reference/system/system_time.html
+ * https://github.com/lbernstone/ESP32_settimeofday/blob/master/settimeofday.ino
  */
 
 #include <Arduino.h>
