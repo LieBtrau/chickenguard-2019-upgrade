@@ -1,6 +1,6 @@
 # chickenguard-2019-upgrade
 
-![architecture](./docs/architecture.drawio.png)
+![architecture](./docs/R1.1/architecture.drawio.png)
 
 Open-source replacement for the electronics of the [ChickenGuard](https://www.chickenguard.be/), an automatic chicken door opener.
 
@@ -22,14 +22,25 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
 ## Documentation
 
 * [Product Requirement Document](./docs/PRD.md)
-* [Concept](./docs/concept.md)
-* [Technical study](./docs/technical-study.ipynb)
+
+## Revision history
+### Revision 1.1 : Using an external RTC
+  * PCB cost reduction : layer count reduced from 4 to 2.
+  * [Concept](./docs/R1.1/concept.md)
+  * [Technical study](./docs/R1.1/technical-study_1.1.ipynb)
+
+### Revision 1.0 : Using the internal RTC of the ESP32
+  * PCB design created, but never manufactured
+  * [Concept](./docs/R1.0/concept.md)
+  * [Technical study](./docs/R1.0/technical-study_1.0.ipynb)
 
 ## Prior Art
 * [Peno64 ChickenGuard](https://github.com/peno64/ChickenGuard/blob/master/ChickenGuard.ino)
 * [JP_chickenDoor](https://github.com/f2knpw/JP_chickenDoor/blob/master/JP_ESP32_ChickenDoor_wifi_IRsensor_Arduino.ino)
 * [ChickenGuard](https://www.chickenguard.be/)
   * Uses an 8bit MCU (PIC18F14K22), an external RTC with 32.768kHz crystal and an SOIC8 motor driver.
+
+---
 
 Original version of this repository is at [LieBtrau/chickenguard-2019-upgrade](https://github.com/LieBtrau/chickenguard-2019-upgrade).
 
