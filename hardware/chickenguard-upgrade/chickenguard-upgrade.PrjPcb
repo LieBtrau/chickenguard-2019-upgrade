@@ -45,7 +45,6 @@ CrossRefPorts=0
 CrossRefCrossSheets=1
 CrossRefSheetEntries=0
 CrossRefFollowFromMainSettings=1
-CurrentVariant=A
 
 [Preferences]
 PrefsVaultGUID=
@@ -400,16 +399,16 @@ DocumentPath=Project Outputs for chickenguard-upgrade\Board assembly output\Pick
 DItemRevisionGUID=
 
 [Parameter1]
-Name=project_revision
-Value=E1.01
+Name=board_name
+Value=KIPGRD
 
 [Parameter2]
 Name=Project_link
 Value=https://github.com/LieBtrau/chickenguard-2019-upgrade/
 
 [Parameter3]
-Name=board_name
-Value=KIPGRD
+Name=project_revision
+Value=E1.01
 
 [Configuration1]
 Name=Sources
@@ -1213,7 +1212,7 @@ Type6=2
 Type7=0
 Type8=1
 Type9=1
-Type10=1
+Type10=0
 Type11=2
 Type12=2
 Type13=2
@@ -1333,14 +1332,14 @@ Type127=1
 
 [ERC Connection Matrix]
 L1=NNNNNNNNNNNWNNNWW
-L2=NNWNNNNWWWNWNWNWN
+L2=NNWNNNNWNWNWNWNWN
 L3=NWEENEEEENEWNEEWN
 L4=NNENNNWEENNWNENWN
 L5=NNNNNNNNNNNNNNNNN
 L6=NNENNNNEENNWNENWN
 L7=NNEWNNWEENNWNENWN
 L8=NWEENEENEEENNEENN
-L9=NWEENEEEENEWNEEWW
+L9=NNEENEEEENEWNEEWW
 L10=NWNNNNNENNEWNNEWN
 L11=NNENNNNEEENWNENWN
 L12=WWWWNWWNWWWNWWWNN
