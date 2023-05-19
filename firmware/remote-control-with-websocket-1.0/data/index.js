@@ -27,8 +27,8 @@ function onLoad(event) {
 function initWebSocket() {
     console.log('Trying to open a WebSocket connection...');
     websocket = new WebSocket(gateway);
-    websocket.onopen    = onOpen;
-    websocket.onclose   = onClose;
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
     websocket.onmessage = onMessage;
 }
 
@@ -55,5 +55,7 @@ function initButton() {
 }
 
 function onToggle(event) {
-    websocket.send(JSON.stringify({'action':'toggle'}));
+    websocket.send(JSON.stringify(
+        { 'action': 'toggle', 'UTCSeconds': Date.now() / 1000 }
+    ));
 }

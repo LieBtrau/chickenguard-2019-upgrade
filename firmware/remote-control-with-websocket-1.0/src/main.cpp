@@ -205,7 +205,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
     {
 
-        const uint8_t size = JSON_OBJECT_SIZE(1);
+        const uint8_t size = JSON_OBJECT_SIZE(2);
         StaticJsonDocument<size> json;
         DeserializationError err = deserializeJson(json, data);
         if (err)
@@ -219,8 +219,11 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         if (strcmp(action, "toggle") == 0)
         {
             led.on = !led.on;
+            Serial.printf("LED state: %d\r\n", led.on);
             notifyClients();
         }
+        long utc = json["UTCSeconds"];
+        Serial.println(utc);
     }
 }
 

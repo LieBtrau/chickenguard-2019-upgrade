@@ -18,7 +18,9 @@ function getLocation() {
 
 function getTime()
 {
-    console.log("Epoch seconds: " + Math.floor(Date.now() / 1000));
+    var jsonUtc = JSON.stringify(
+        { 'action': 'toggle', 'UTCSeconds': Math.floor(Date.now() / 1000) });
+    console.log(jsonUtc);
 }
 
 function showPosition(position) {
