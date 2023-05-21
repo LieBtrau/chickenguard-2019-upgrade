@@ -9,3 +9,6 @@
 *.Zip
 
 Project Outputs for chickenguard-upgrade
+
+extensions.json
+README
