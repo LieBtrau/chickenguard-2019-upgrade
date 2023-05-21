@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="author" content="Christoph Tack">
+  <meta name="description" content="Portal to set up Chickenguard parameters">
+  <title>Chickenguard web portal</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="index.css">
+  <script src="index.js"></script>
+</head>
+
+<body>
+  <h2>Chickenguard web portal</h2>
+  <div class="panel">
+    <fieldset id="modeSelection">
+      <fieldset>
+        <legend>Please select door control:</legend>
+        <div>
+          <input type="radio" id="manuallyId" name="doorcontrol" value="manually" />
+          <label for="manuallyId">Manually</label>
+
+          <input type="radio" id="sunId" name="doorcontrol" value="sun" />
+          <label for="sunId">Sun</label>
+
+          <input type="radio" id="fixedTimeId" name="doorcontrol" value="fixedTime" />
+          <label for="fixedTimeId">Fixed time</label>
+        </div>
+      </fieldset>
+      <fieldset id="fixed_time_door_timings">
+        <legend>Please select when to automatically open & close the door :</legend>
+        <div>
+          <label for="morning">Time to open the door in the morning:</label>
+          <input type="time" id="door_open" name="door_open" min="05:00" step="300" max="12:00" required
+            pattern="[0-9]{2}:[0-9]{2}">
+        </div>
+        <div>
+          <label for="evening">Time to close the door in the evening:</label>
+          <input type="time" id="door_closed" name="door_closed" min="16:00" step="300" max="23:00" required
+            pattern="[0-9]{2}:[0-9]{2}">
+        </div>
+      </fieldset>
+      <fieldset>
+        <div>
+          <button type="submit" id="submit">Submit</button>
+        </div>
+      </fieldset>
+    </fieldset>
+  </div>
+</body>
+
+</html>
