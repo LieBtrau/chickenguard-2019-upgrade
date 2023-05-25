@@ -31,8 +31,8 @@ function onLoad(event) {
                 document.getElementById("fixed_time_door_timings").classList.add("hide");
         }
     }
-    document.getElementById("door_open").value = "08:00";
-    document.getElementById("door_closed").value = "20:00";
+    document.getElementById("AutomaticOpeningTime").value = "08:00";
+    document.getElementById("AutomaticClosingTime").value = "20:00";
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -71,11 +71,11 @@ function onSubmit(event) {
     let jsonstring = JSON.stringify(
         {
             'UTCSeconds': Math.floor(Date.now() / 1000),
-            'latitude': currentPosition.coords.latitude,
-            'longitude': currentPosition.coords.longitude,
-            'doorControl': document.querySelector('input[name="doorcontrol"]:checked').value,
-            'manual_door_open': document.getElementById("door_open").value,
-            'manual_door_closed': document.getElementById("door_closed").value
+            'Latitude': currentPosition.coords.latitude,
+            'Longitude': currentPosition.coords.longitude,
+            'DoorControl': document.querySelector('input[name="doorcontrol"]:checked').value,
+            'AutomaticOpeningTime': document.getElementById("AutomaticOpeningTime").value,
+            'AutomaticClosingTime': document.getElementById("AutomaticClosingTime").value
         }
     )
     console.log(jsonstring);
