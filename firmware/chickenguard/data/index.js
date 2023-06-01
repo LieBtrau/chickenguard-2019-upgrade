@@ -4,13 +4,17 @@
 
 var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
-var currentPosition = { coords: { latitude: 0, longitude: 0 } };
+var currentPosition = { coords: { latitude: 50.85, longitude: 4.35 } }; //Coordinates of Brussels
 
 // ----------------------------------------------------------------------------
 // Initialization
 // ----------------------------------------------------------------------------
 
 window.addEventListener('load', onLoad);
+window.addEventListener("unload", function () {
+    if (websocket.readyState == WebSocket.OPEN) websocket.close();
+});
+
 
 function onLoad(event) {
     initWebSocket();
@@ -20,12 +24,15 @@ function onLoad(event) {
     // Only enable the sun button after the geolocation is available
     document.getElementById("sunId").disabled = true;
 
+    //Hide server feedback
+    document.getElementById("serverFeedback").classList.add("hide");
+
     // Hide the fixed time door timings when it is not selected
     document.getElementById("fixed_time_door_timings").classList.add("hide");
     var radios = document.getElementsByName('doorcontrol');
-    for(radio in radios) {
-        radios[radio].onclick = function() {
-            if(this.value == "fixedTime") 
+    for (radio in radios) {
+        radios[radio].onclick = function () {
+            if (this.value == "fixedTime")
                 document.getElementById("fixed_time_door_timings").classList.remove("hide");
             else
                 document.getElementById("fixed_time_door_timings").classList.add("hide");
@@ -34,11 +41,9 @@ function onLoad(event) {
     document.getElementById("AutomaticOpeningTime").value = "08:00";
     document.getElementById("AutomaticClosingTime").value = "20:00";
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
-    } else {
-        alert("Geolocation is not supported by this browser.");
-    }
+    document.getElementById("sunId").disabled = false;
+
+
 }
 
 // ----------------------------------------------------------------------------
@@ -59,6 +64,7 @@ function onOpen(event) {
 
 function onMessage(event) {
     let data = JSON.parse(event.data);
+    document.getElementById('feedback').innerHTML = String(data.status);
     console.log(data);
 }
 
@@ -79,34 +85,11 @@ function onSubmit(event) {
         }
     )
     console.log(jsonstring);
-    location.replace("done.html");
+    document.getElementById("serverFeedback").classList.remove("hide");
+    document.getElementById("modeSelection").classList.add("hide");
+    document.getElementById("submitbutton").classList.add("hide");
+    document.getElementById("fixed_time_door_timings").classList.add("hide");
     websocket.send(jsonstring);
-}
-
-// ----------------------------------------------------------------------------
-// Geolocation handling
-// ----------------------------------------------------------------------------
-function showPosition(position) {
-    currentPosition = position;
-    console.log("Latitude: " + currentPosition.coords.latitude + "\r\nLongitude: " + currentPosition.coords.longitude);
-    document.getElementById("sunId").disabled = false;
-}
-
-function showError(error) {
-    switch (error.code) {
-        case error.PERMISSION_DENIED:
-            alert("User denied the request for Geolocation.");
-            break;
-        case error.POSITION_UNAVAILABLE:
-            alert("Location information is unavailable.");
-            break;
-        case error.TIMEOUT:
-            alert("The request to get user location timed out.");
-            break;
-        case error.UNKNOWN_ERROR:
-            alert("An unknown error occurred.");
-            break;
-    }
 }
 
 // ----------------------------------------------------------------------------

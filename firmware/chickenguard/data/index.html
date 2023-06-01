@@ -16,8 +16,8 @@
 <body>
   <h2>Chickenguard web portal</h2>
   <div class="panel">
-    <fieldset id="modeSelection">
-      <fieldset>
+    <fieldset>
+      <fieldset id="modeSelection">
         <legend>Please select door control:</legend>
         <div>
           <input type="radio" id="manuallyId" name="doorcontrol" value="manually" />
@@ -44,10 +44,14 @@
             pattern="[0-9]{2}:[0-9]{2}">
         </div>
       </fieldset>
-      <fieldset>
+      <fieldset id="submitbutton">
         <div>
-          <button type="submit" id="submit">Submit</button>
+          <button type="button" id="submit">Submit</button>
         </div>
+      </fieldset>
+      <br/>
+      <fieldset id="serverFeedback">
+        <span id="feedback"></span>
       </fieldset>
     </fieldset>
   </div>

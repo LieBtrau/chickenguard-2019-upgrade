@@ -12,7 +12,7 @@ static const char* TAG = "Main";
 void onRootRequest(AsyncWebServerRequest *request);
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 
-    const IPAddress localIP(4, 3, 2, 1);      // the IP address the web server, Samsung requires the IP to be in public space
+const IPAddress localIP(4, 3, 2, 1);      // the IP address the web server, Samsung requires the IP to be in public space
 const IPAddress subnetMask(255, 255, 255, 0); // no need to change: https://avinetworks.com/glossary/subnet-mask/
 const String localIPURL = "http://4.3.2.1";   // a string version of the local IP with http, used for redirecting clients to your webpage
 
@@ -79,7 +79,7 @@ String processor(const String &var)
 void onRootRequest(AsyncWebServerRequest *request)
 {
     AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.html", "text/html", false, processor);
-    response->addHeader("Cache-Control", "public,max-age=604800"); // 
+    response->addHeader("Cache-Control", "public,max-age=0"); // 
     request->send(response);
 }
 
@@ -114,17 +114,18 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         }
 
         long utc = json["UTCSeconds"];
-        long latitude = json["Latitude"];
-        long longitude = json["Longitude"];
+        float latitude = json["Latitude"];
+        float longitude = json["Longitude"];
         String doorControl = json["DoorControl"];
         String automaticOpeningTime = json["AutomaticOpeningTime"];
         String automaticClosingTime = json["AutomaticClosingTime"];
         ESP_LOGI(TAG, "%lu", utc);
-        ESP_LOGI(TAG, "%lu", latitude);
-        ESP_LOGI(TAG, "%lu",longitude);
+        ESP_LOGI(TAG, "%.2f", latitude);
+        ESP_LOGI(TAG, "%.2f",longitude);
         ESP_LOGI(TAG, "%s", doorControl);
         ESP_LOGI(TAG, "%s", automaticOpeningTime);
         ESP_LOGI(TAG, "%s", automaticClosingTime);
+        notifyClients();
     }
 }
 
