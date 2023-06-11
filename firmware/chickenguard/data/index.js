@@ -6,6 +6,15 @@ var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
 var currentPosition = { coords: { latitude: 50.85, longitude: 4.35 } }; //Coordinates of Brussels
 
+// Symbolic constants for the door control
+const DoorControl = Object.freeze({
+    //Symbol description must match the one in the ESP32
+    manualcontrol: Symbol("manual"),
+    fixedTimeControl: Symbol("fixedTime"),
+    sunControl: Symbol("sun"),
+})
+
+
 // ----------------------------------------------------------------------------
 // Initialization
 // ----------------------------------------------------------------------------
@@ -40,7 +49,6 @@ function onLoad(event) {
     }
     document.getElementById("AutomaticOpeningTime").value = "08:00";
     document.getElementById("AutomaticClosingTime").value = "20:00";
-
     document.getElementById("sunId").disabled = false;
 
 
@@ -74,14 +82,30 @@ function onClose(event) {
 }
 
 function onSubmit(event) {
+    let doorControlValue;
+    switch (document.querySelector('input[name="doorcontrol"]:checked').value) {
+        case "manually":
+            doorControlValue = DoorControl.manualcontrol;
+            break;
+        case "fixedTime":
+            doorControlValue = DoorControl.fixedTimeControl;
+            break;
+        case "sun":
+            doorControlValue = DoorControl.sunControl;
+            break;
+        default:
+            console.error("Unknown door control value: " + document.querySelector('input[name="doorcontrol"]:checked').value);
+    }
+
     let jsonstring = JSON.stringify(
         {
             'UTCSeconds': Math.floor(Date.now() / 1000),
+            'Timezone' : Intl.DateTimeFormat().resolvedOptions().timeZone, 
             'Latitude': currentPosition.coords.latitude,
             'Longitude': currentPosition.coords.longitude,
-            'DoorControl': document.querySelector('input[name="doorcontrol"]:checked').value,
+            'DoorControl': doorControlValue.description,
             'AutomaticOpeningTime': document.getElementById("AutomaticOpeningTime").value,
-            'AutomaticClosingTime': document.getElementById("AutomaticClosingTime").value
+            'AutomaticClosingTime': document.getElementById("AutomaticClosingTime").value,   
         }
     )
     console.log(jsonstring);
@@ -89,7 +113,9 @@ function onSubmit(event) {
     document.getElementById("modeSelection").classList.add("hide");
     document.getElementById("submitbutton").classList.add("hide");
     document.getElementById("fixed_time_door_timings").classList.add("hide");
-    websocket.send(jsonstring);
+    if (websocket.readyState == WebSocket.OPEN) {
+        websocket.send(jsonstring);
+    }
 }
 
 // ----------------------------------------------------------------------------

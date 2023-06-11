@@ -15,6 +15,7 @@ Design a device that can pull-up and lower a chicken door, and that can be easil
 
 # Assumptions, constraints
 * The electronics need to fit in the current enclosure
+* The geo-location of the device can be taken from the smartphone
 
 # Dependencies
 
