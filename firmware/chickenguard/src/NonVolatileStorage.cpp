@@ -5,12 +5,24 @@ const char *TAG = "NonVolatileStorage";
 
 const bool RO_MODE = true;
 const bool RW_MODE = false;
+const char* NVS_NAMESPACE = "door";
+const char* NVS_KEY_INIT = "nvsInit";
+const char* NVS_KEY_LATITUDE = "latitude";
+const char* NVS_KEY_LONGITUDE = "longitude";
+const char* NVS_KEY_FIX_OPENING_TIME_HOUR = "open_hour";
+const char* NVS_KEY_FIX_OPENING_TIME_MINUTE = "open_minute";
+const char* NVS_KEY_FIX_CLOSING_TIME_HOUR = "close_hour";
+const char* NVS_KEY_FIX_CLOSING_TIME_MINUTE = "close_minute";
+const char* NVS_KEY_DOOR_CONTROL = "doorControl";
 
 NonVolatileStorage::NonVolatileStorage()
 {
+}
 
-    _preferences.begin("door", RO_MODE);
-    if (!_preferences.isKey("nvsInit"))
+void NonVolatileStorage::restoreAll()
+{
+    _preferences.begin(NVS_NAMESPACE, RO_MODE);
+    if (!_preferences.isKey(NVS_KEY_INIT))
     {
         _preferences.end();
         ESP_LOGI(TAG, "Initializing NVS for the first time");
@@ -18,28 +30,29 @@ NonVolatileStorage::NonVolatileStorage()
     }
     else
     {
-        _latitude = _preferences.getFloat("latitude", 0);
-        _longitude = _preferences.getFloat("longitude", 0);
-        _fixOpeningTime_hour = _preferences.getUChar("fixOpeningTime_hour", 0);
-        _fixOpeningTime_minute = _preferences.getUChar("fixOpeningTime_minute", 0);
-        _fixClosingTime_hour = _preferences.getUChar("fixClosingTime_hour", 0);
-        _fixClosingTime_minute = _preferences.getUChar("fixClosingTime_minute", 0);
-        _doorControl = static_cast<DoorControl>(_preferences.getUChar("doorControl", 0));
+        _latitude = _preferences.getFloat(NVS_KEY_LATITUDE, 0);
+        _longitude = _preferences.getFloat(NVS_KEY_LONGITUDE, 0);
+        _fixOpeningTime_hour = _preferences.getUChar(NVS_KEY_FIX_OPENING_TIME_HOUR, 0);
+        _fixOpeningTime_minute = _preferences.getUChar(NVS_KEY_FIX_OPENING_TIME_MINUTE, 0);
+        _fixClosingTime_hour = _preferences.getUChar(NVS_KEY_FIX_CLOSING_TIME_HOUR, 0);
+        _fixClosingTime_minute = _preferences.getUChar(NVS_KEY_FIX_CLOSING_TIME_MINUTE, 0);
+        _doorControl = static_cast<DoorControl>(_preferences.getUChar(NVS_KEY_DOOR_CONTROL, 0));
         _preferences.end();
-    }
+    }    
 }
 
 void NonVolatileStorage::saveAll()
 {
-    _preferences.begin("door", RW_MODE);
-    _preferences.putFloat("latitude", _latitude);
-    _preferences.putFloat("longitude", _longitude);
-    _preferences.putUChar("fixOpeningTime_hour", _fixOpeningTime_hour);
-    _preferences.putUChar("fixOpeningTime_minute", _fixOpeningTime_minute);
-    _preferences.putUChar("fixClosingTime_hour", _fixClosingTime_hour);
-    _preferences.putUChar("fixClosingTime_minute", _fixClosingTime_minute);
-    _preferences.putUChar("doorControl", static_cast<uint8_t>(_doorControl));
-    _preferences.putBool("nvsInit", true);
+    ESP_LOGI(TAG, "Saving all settings to NVS");
+    _preferences.begin(NVS_NAMESPACE, RW_MODE);
+    _preferences.putFloat(NVS_KEY_LATITUDE, _latitude);
+    _preferences.putFloat(NVS_KEY_LONGITUDE, _longitude);
+    _preferences.putUChar(NVS_KEY_FIX_OPENING_TIME_HOUR, _fixOpeningTime_hour);
+    _preferences.putUChar(NVS_KEY_FIX_OPENING_TIME_MINUTE, _fixOpeningTime_minute);
+    _preferences.putUChar(NVS_KEY_FIX_CLOSING_TIME_HOUR, _fixClosingTime_hour);
+    _preferences.putUChar(NVS_KEY_FIX_CLOSING_TIME_MINUTE, _fixClosingTime_minute);
+    _preferences.putUChar(NVS_KEY_DOOR_CONTROL, static_cast<uint8_t>(_doorControl));
+    _preferences.putBool(NVS_KEY_INIT, true);
     _preferences.end();
 }
 

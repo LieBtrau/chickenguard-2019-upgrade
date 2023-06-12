@@ -13,6 +13,7 @@ public:
 
     NonVolatileStorage();
     ~NonVolatileStorage();
+    void restoreAll();
     void saveAll();
     void getGeoLocation(float& latitude, float& longitude) const;
     void setGeoLocation(float latitude, float longitude);

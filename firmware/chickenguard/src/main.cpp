@@ -40,6 +40,7 @@ void setup()
         while (1)
             ;
     }
+    config.restoreAll();
 #ifdef WIFI_STATION
     WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
