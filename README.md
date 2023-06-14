@@ -28,7 +28,7 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
   * PCB cost reduction : layer count reduced from 4 to 2.
   * [Concept](./docs/R1.1/concept.md)
   * [Technical study](./docs/R1.1/technical-study_1.1.ipynb)
-  * [Hardware design](https://365.altium.com/files/C9F51258-D859-4807-ACB1-E5928658F052)
+  * [Hardware design](https://365.altium.com/files/C9F51258-D859-4807-ACB1-E5928658F052) : for users with a free [AltiumLive account](https://365.altium.com/signin?ReturnUrl=https%3A%2F%2Fwww.altium.com%2Fviewer%2F).
 
 ### Revision 1.0 : Using the internal RTC of the ESP32
   * PCB design created, but never manufactured
