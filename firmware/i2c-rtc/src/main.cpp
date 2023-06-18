@@ -44,6 +44,8 @@ void setup()
   }
   asyncDelay.start(5000, AsyncDelay::MILLIS);
   rtc.enableSquareWave(false); // disable square wave to save power
+
+  rtc.setDailyAlarm1(12,59);
   ESP_LOGI(TAG, "Done");
 }
 
@@ -59,7 +61,12 @@ void loop()
       while (1)
         ;
     }
-    tm *timeinfo = localtime(&now);
+    if(rtc.isAlarm1Triggered())
+    {
+      ESP_LOGI(TAG, "Alarm 1 triggered");
+      rtc.acknowledgeAlarm1();
+    }
+    //tm *timeinfo = localtime(&now);
     // ESP_LOGI(TAG, "The current date/time is: %s", asctime(timeinfo));
   }
 }

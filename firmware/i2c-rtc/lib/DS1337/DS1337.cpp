@@ -146,6 +146,28 @@ bool DS1337::setTime(tm *timeinfo)
     return true;
 }
 
+bool DS1337::setDailyAlarm1(uint8_t hour, uint8_t minute, uint8_t second)
+{
+    uint8_t alarm_data[3];
+
+    alarm_data[0] = encode_bcd(second);
+    alarm_data[1] = encode_bcd(minute);
+    alarm_data[2] = encode_bcd(hour);
+    if (!_writeBytes(I2C_ADDRESS, (uint8_t)Register::ALARM1_SECONDS, sizeof(alarm_data), alarm_data))
+    {
+        ESP_LOGE(TAG, "Error writing alarm");
+        return false;
+    }
+    // Set alarm frequency to once per day
+    setRegisterBit(Register::ALARM1_SECONDS, A1M1_bit, false);
+    setRegisterBit(Register::ALARM1_MINUTES, A1M2_bit, false);
+    setRegisterBit(Register::ALARM1_HOURS, A1M3_bit, false);
+    setRegisterBit(Register::ALARM1_DAY_DATE, A1M4_bit, true);
+    // Enable alarm
+    setRegisterBit(Register::CONTROL, A1IE_bit, true);
+    return true;
+}
+
 bool DS1337::setRegisterBit(Register reg, uint8_t bit, bool value)
 {
     uint8_t reg_data;
@@ -164,4 +186,20 @@ bool DS1337::setRegisterBit(Register reg, uint8_t bit, bool value)
 bool DS1337::enableSquareWave(bool isEnabled)
 {
     return setRegisterBit(Register::CONTROL, INTCN_bit, !isEnabled);
+}
+
+bool DS1337::acknowledgeAlarm1()
+{
+    return setRegisterBit(Register::STATUS, A1F_bit, false);
+}
+
+bool DS1337::isAlarm1Triggered()
+{
+    uint8_t status_data;
+    if (_readBytes(I2C_ADDRESS, (uint8_t)Register::STATUS, sizeof(status_data), &status_data) != sizeof(status_data))
+    {
+        ESP_LOGE(TAG, "Error reading status register");
+        return false;
+    }
+    return status_data & (1 << A1F_bit);
 }
