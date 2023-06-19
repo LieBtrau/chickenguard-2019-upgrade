@@ -5,6 +5,9 @@
  * @version 0.1
  * @date 2023-06-18
  *
+ * @details
+ * * [PT7C4337](https://www.diodes.com/assets/Datasheets/PT7C4337.pdf)
+ * * [DS1337](https://www.analog.com/media/en/technical-documentation/data-sheets/DS1337-DS1337C.pdf)
  * @copyright Copyright (c) 2023
  *
  */

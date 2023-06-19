@@ -9,6 +9,8 @@
 #include <AsyncDelay.h>
 #include "timeControl.h"
 #include "NonVolatileStorage.h"
+#include "i2c_hal.h"
+#include "DS1337.h"
 
 static const char *TAG = "Main";
 
@@ -23,15 +25,20 @@ DNSServer dnsServer;
 AsyncWebServer server(80); // HTTP port 80
 AsyncWebSocket ws("/ws");
 AsyncDelay timeShowDelay;
+AsyncDelay ledBlinkDelay;
 TimeControl timeControl;
 NonVolatileStorage config;
+DS1337 rtc(readBytes, writeBytes);
 
 void setup()
 {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH); // turn LED on, don't wait for timer to expire first.
+    pinMode(EN_PWR, OUTPUT);
+    digitalWrite(EN_PWR, HIGH); // take over power enable pin from momentary switch.turn LED on, don't wait for timer to expire first.
     Serial.begin(115200);
     while (!Serial)
         ;
-    delay(2000);
     ESP_LOGD(TAG, "\r\nBuild %s\r\n", __TIMESTAMP__);
 
     if (!SPIFFS.begin())
@@ -72,6 +79,35 @@ void setup()
     server.serveStatic("/", SPIFFS, "/");
     server.begin();
     timeShowDelay.start(5000, AsyncDelay::MILLIS);
+    ledBlinkDelay.start(500, AsyncDelay::MILLIS);
+
+    if (!i2c_hal_init(9, 8))
+    {
+        ESP_LOGE(TAG, "I2C init failed");
+        while (1)
+            ;
+    }
+
+    if (!detectI2cDevice(rtc.getI2cAddress()))
+    {
+        ESP_LOGE(TAG, "DS1337 not found");
+        while (1)
+            ;
+    }
+    ESP_LOGI(TAG, "DS1337 found");
+
+    int32_t unixtime = 1687093084; // result of linux cli : date '+%s'
+    timeval epoch = {unixtime, 0};
+    settimeofday((const timeval *)&epoch, 0);
+    time_t now;
+    time(&now);
+    if (!rtc.setTime(now))
+    {
+        ESP_LOGE(TAG, "Failed to set time");
+        while (1)
+            ;
+    }
+    rtc.enableSquareWave(false); // disable square wave to save power
 }
 
 void loop()
@@ -89,6 +125,11 @@ void loop()
         localtime_r(&now, &timeinfo);
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI(TAG, "The current date/time in Brussels is: %s", strftime_buf);
+    }
+    if (ledBlinkDelay.isExpired())
+    {
+        ledBlinkDelay.repeat();
+        digitalWrite(LED_PIN, !digitalRead(LED_PIN));
     }
 }
 
@@ -110,7 +151,7 @@ void notifyClients(String status)
     StaticJsonDocument<size> json;
     json["status"] = status.c_str();
 
-    char buffer[size+10];
+    char buffer[size + 10];
     size_t len = serializeJson(json, buffer);
     ws.textAll(buffer, len);
 }
