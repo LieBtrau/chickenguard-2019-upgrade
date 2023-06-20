@@ -5,7 +5,7 @@
 class TimeControl
 {
 public:
-    TimeControl(){};
+    TimeControl();
     ~TimeControl();
 
     bool updateMcuTime(long utc, const String timeZone);

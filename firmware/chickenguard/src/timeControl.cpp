@@ -14,6 +14,16 @@ static const timeZone_t timeZones[1] =
     {
         {"Europe/Brussels", "CET-1CEST,M3.5.0,M10.5.0/3"}}; // source : last line of /usr/share/zoneinfo/Europe/Brussels)
 
+TimeControl::TimeControl()
+{
+    _timeIsSet = false;
+    _timeZoneIndex = 0;
+}
+
+TimeControl::~TimeControl()
+{
+}
+
 bool TimeControl::updateMcuTime(long utc, const String timeZone)
 {
     ESP_LOGI(TAG, "%lu", utc);

@@ -19,6 +19,10 @@ NonVolatileStorage::NonVolatileStorage()
 {
 }
 
+NonVolatileStorage::~NonVolatileStorage()
+{
+}
+
 void NonVolatileStorage::restoreAll()
 {
     _preferences.begin(NVS_NAMESPACE, RO_MODE);
