@@ -30,7 +30,7 @@ void setupWebserver()
         while (1)
             ;
     }
-    
+
 #ifdef WIFI_STATION
     WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -69,7 +69,6 @@ void loopWebserver()
     ws.cleanupClients();
 }
 
-
 String processor(const String &var)
 {
     return String(var == "STATE" ? "on" : "off");
@@ -82,14 +81,18 @@ void onRootRequest(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void notifyClients(String status)
+void notifyClients(String key, String status)
 {
-    const uint8_t size = JSON_OBJECT_SIZE(1);
+    const uint8_t size = JSON_OBJECT_SIZE(3);
     StaticJsonDocument<size> json;
-    json["status"] = status.c_str();
-
+    json["key"] = key.c_str();
+    if (key.equals("feedback"))
+    {
+        json["status"] = status.c_str();
+    }
     char buffer[size + 10];
     size_t len = serializeJson(json, buffer);
+    ESP_LOGI(TAG, "json: %s", buffer);
     ws.textAll(buffer, len);
 }
 
@@ -109,7 +112,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         if (err)
         {
             ESP_LOGE(TAG, "deserializeJson() failed with code %s", err.c_str());
-            notifyClients("error");
+            notifyClients("feedback", "error");
             return;
         }
 
@@ -133,7 +136,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         config.setFixOpeningTime(fixOpeningTime);
         config.setFixClosingTime(fixClosingTime);
 
-        notifyClients("Data received");
+        notifyClients("feedback", "Data received");
     }
 }
 

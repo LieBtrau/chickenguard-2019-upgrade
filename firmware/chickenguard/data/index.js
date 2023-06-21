@@ -72,8 +72,13 @@ function onOpen(event) {
 
 function onMessage(event) {
     let data = JSON.parse(event.data);
-    document.getElementById('feedback').innerHTML = String(data.status);
     console.log(data);
+    switch(data.key)
+    {
+        case 'feedback':
+            document.getElementById('feedback').innerHTML = String(data.status);
+            break;
+    }
 }
 
 function onClose(event) {
