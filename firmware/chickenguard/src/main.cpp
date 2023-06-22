@@ -41,7 +41,7 @@ void setup()
     setupWebserver();
     config.restoreAll();
     timeShowDelay.start(5000, AsyncDelay::MILLIS);
-    //ledBlinkDelay.start(500, AsyncDelay::MILLIS);
+    ledBlinkDelay.start(500, AsyncDelay::MILLIS);
 
     if (!i2c_hal_init(9, 8))
     {
@@ -72,6 +72,8 @@ void setup()
     rtc.enableSquareWave(false); // disable square wave to save power
 }
 
+int i = 0;
+
 void loop()
 {
     loopWebserver();
@@ -87,14 +89,11 @@ void loop()
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI(TAG, "The current date/time in Brussels is: %s", strftime_buf);
     }
-    // if (ledBlinkDelay.isExpired())
-    // {
-    //     ledBlinkDelay.repeat();
-    //     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-    // }
-    if(Serial.available())
+    if (ledBlinkDelay.isExpired())
     {
-        char c = Serial.read();
+        i++;
+        ledBlinkDelay.repeat();
         digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+        notifyClients("battery",String(i));
     }
 }

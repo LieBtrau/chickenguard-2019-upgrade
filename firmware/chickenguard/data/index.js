@@ -78,6 +78,9 @@ function onMessage(event) {
         case 'feedback':
             document.getElementById('feedback').innerHTML = String(data.status);
             break;
+        case 'battery':
+            document.getElementById('battery').innerHTML = String(data.status);
+            break;
     }
 }
 

@@ -17,6 +17,13 @@
   <h2>Chickenguard web portal</h2>
   <div class="panel">
     <fieldset>
+      <fieldset>
+        <legend>Status information</legend>
+        <div>
+          <label>Battery level: </label>
+          <span id="battery"></span>
+        </div>
+      </fieldset>
       <fieldset id="modeSelection">
         <legend>Please select door control:</legend>
         <div>
@@ -30,7 +37,7 @@
           <label for="sunId">Sun</label>
         </div>
       </fieldset>
-      <br/>
+      <br />
       <fieldset id="fixed_time_door_timings">
         <legend>Please select when to automatically open & close the door :</legend>
         <div>
@@ -49,7 +56,7 @@
           <button type="button" id="submit">Submit</button>
         </div>
       </fieldset>
-      <br/>
+      <br />
       <fieldset id="serverFeedback">
         <span id="feedback"></span>
       </fieldset>

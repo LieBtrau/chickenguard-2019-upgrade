@@ -90,10 +90,18 @@ void notifyClients(String key, String status)
     {
         json["status"] = status.c_str();
     }
+    if (key.equals("battery"))
+    {
+        json["status"] = status.c_str();
+    }
+    
     char buffer[size + 10];
     size_t len = serializeJson(json, buffer);
     ESP_LOGI(TAG, "json: %s", buffer);
-    ws.textAll(buffer, len);
+    if(ws.count() > 0)
+    {
+        ws.textAll(buffer, len);
+    }
 }
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
