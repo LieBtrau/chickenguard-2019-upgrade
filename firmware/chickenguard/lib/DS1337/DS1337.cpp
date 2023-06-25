@@ -14,6 +14,7 @@
 
 #include "DS1337.h"
 #include "esp32-hal-log.h"
+#include "../../include/bit_manipulation.h"
 static const char* TAG = "DS1337";
 /**
  * @brief Get the Time object as UTC
@@ -75,6 +76,14 @@ uint8_t DS1337::getI2cAddress()
     return I2C_ADDRESS;
 }
 
+
+/**
+ * @brief Get the time as UTC seconds since 1970-01-01
+ * 
+ * @param t 
+ * @return true 
+ * @return false 
+ */
 bool DS1337::getTime(time_t *t)
 {
     tm timeinfo;
@@ -90,14 +99,9 @@ bool DS1337::getTime(tm *timeinfo)
 {
     uint8_t time_data[7];
 
-    if (_readBytes(I2C_ADDRESS, (uint8_t)Register::STATUS, 1, time_data) != 1)
+    if(!isTimeValid())
     {
-        ESP_LOGE(TAG, "Error reading status register");
-        return false;
-    }
-    if (time_data[0] & (1 << OSF_bit))
-    {
-        ESP_LOGE(TAG, "Oscillator stopped");
+        ESP_LOGE(TAG, "Time is not valid");
         return false;
     }
     if (_readBytes(I2C_ADDRESS, (uint8_t)Register::SECONDS, sizeof(time_data), time_data) != sizeof(time_data))
@@ -127,7 +131,7 @@ bool DS1337::setTime(tm *timeinfo)
 {
     uint8_t time_data[7];
 
-    setRegisterBit(Register::CONTROL, nETIME_bit, true);
+    setRegisterBit(Register::CONTROL, Control_nETIME, true);
     // Write the time
     time_data[0] = encode_bcd(timeinfo->tm_sec);
     time_data[1] = encode_bcd(timeinfo->tm_min);
@@ -142,11 +146,9 @@ bool DS1337::setTime(tm *timeinfo)
         ESP_LOGE(TAG, "Error writing time");
         return false;
     }
-    // Start the clock
-    setRegisterBit(Register::CONTROL, nETIME_bit, false);
-    // Clear the oscillator stop flag, indicating that the time is valid again.
-    setRegisterBit(Register::STATUS, OSF_bit, false);
-    return true;
+    
+    return (setRegisterBit(Register::CONTROL, Control_nETIME, false) && // Start the clock
+            setRegisterBit(Register::STATUS, Status_OSF, false));   // Clear the oscillator stop flag, indicating that the time is valid again.
 }
 
 bool DS1337::setDailyAlarm1(uint8_t hour, uint8_t minute, uint8_t second)
@@ -162,12 +164,12 @@ bool DS1337::setDailyAlarm1(uint8_t hour, uint8_t minute, uint8_t second)
         return false;
     }
     // Set alarm frequency to once per day
-    setRegisterBit(Register::ALARM1_SECONDS, A1M1_bit, false);
-    setRegisterBit(Register::ALARM1_MINUTES, A1M2_bit, false);
-    setRegisterBit(Register::ALARM1_HOURS, A1M3_bit, false);
-    setRegisterBit(Register::ALARM1_DAY_DATE, A1M4_bit, true);
+    setRegisterBit(Register::ALARM1_SECONDS, Alarm1Seconds_A1M1, false);
+    setRegisterBit(Register::ALARM1_MINUTES, Alarm1Minutes_A1M2, false);
+    setRegisterBit(Register::ALARM1_HOURS, Alarm1Hours_A1M3, false);
+    setRegisterBit(Register::ALARM1_DAY_DATE, Alarm1DayDate_A1M4, true);
     // Enable alarm
-    setRegisterBit(Register::CONTROL, A1IE_bit, true);
+    setRegisterBit(Register::CONTROL, Control_A1IE, true);
     return true;
 }
 
@@ -179,21 +181,18 @@ bool DS1337::setRegisterBit(Register reg, uint8_t bit, bool value)
         ESP_LOGE(TAG, "Error reading register");
         return false;
     }
-    if (value)
-        reg_data |= (1 << bit);
-    else
-        reg_data &= ~(1 << bit);
+    bitWrite(reg_data, bit, value);
     return _writeBytes(I2C_ADDRESS, (uint8_t)reg, sizeof(reg_data), &reg_data);
 }
 
 bool DS1337::enableSquareWave(bool isEnabled)
 {
-    return setRegisterBit(Register::CONTROL, INTCN_bit, !isEnabled);
+    return setRegisterBit(Register::CONTROL, Control_INTCN, !isEnabled);
 }
 
 bool DS1337::acknowledgeAlarm1()
 {
-    return setRegisterBit(Register::STATUS, A1F_bit, false);
+    return setRegisterBit(Register::STATUS, Status_A1F, false);
 }
 
 bool DS1337::isAlarm1Triggered()
@@ -204,5 +203,21 @@ bool DS1337::isAlarm1Triggered()
         ESP_LOGE(TAG, "Error reading status register");
         return false;
     }
-    return status_data & (1 << A1F_bit);
+    return bitRead(status_data, Status_A1F);
+}
+
+bool DS1337::isTimeValid()
+{
+    uint8_t time_data[1];
+    if (_readBytes(I2C_ADDRESS, (uint8_t)Register::STATUS, 1, time_data) != sizeof(time_data))
+    {
+        ESP_LOGE(TAG, "Error reading status register");
+        return false;
+    }
+    if (bitRead(time_data[0], Status_OSF))
+    {
+        ESP_LOGE(TAG, "Oscillator stopped");
+        return false;
+    }
+    return true;
 }

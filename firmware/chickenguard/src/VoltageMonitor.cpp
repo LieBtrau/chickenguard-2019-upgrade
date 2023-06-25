@@ -10,10 +10,17 @@ uint32_t VoltageMonitor::getVoltage_mV()
 {
     const int SAMPLE_COUNT = 10;
     int adcValue = 0;
+    const uint32_t MAX_mV_MEASUREMENT = 3500;
 
-    for (int i = 0; i < SAMPLE_COUNT; i++)
+    int sampleCount=0;
+    while(sampleCount < SAMPLE_COUNT)
     {
-        adcValue += analogReadMilliVolts(_pin);
+        uint32_t measurement = analogReadMilliVolts(_pin);
+        if (measurement < MAX_mV_MEASUREMENT)
+        {
+            adcValue += measurement;
+            sampleCount++;
+        }
         delay(1);
     }
     return adcValue * _voltageDividerScale / SAMPLE_COUNT;

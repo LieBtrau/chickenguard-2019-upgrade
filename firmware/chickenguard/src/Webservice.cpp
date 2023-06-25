@@ -21,6 +21,7 @@ AsyncWebServer server(80); // HTTP port 80
 AsyncWebSocket ws("/ws");
 extern TimeControl timeControl;
 extern NonVolatileStorage config;
+static bool isInitialized = false;
 
 void setupWebserver()
 {
@@ -61,10 +62,15 @@ void setupWebserver()
     server.on("/", HTTP_ANY, onRootRequest);
     server.serveStatic("/", SPIFFS, "/");
     server.begin();
+    isInitialized = true;
 }
 
 void loopWebserver()
 {
+    if (!isInitialized)
+    {
+        return;
+    }
     dnsServer.processNextRequest();
     ws.cleanupClients();
 }
@@ -128,6 +134,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         long utc = json["UTCSeconds"];
         String timeZone = json["Timezone"];
         timeControl.updateMcuTime(utc, timeZone);
+        config.setTimeZone(timeZone);
 
         // Update location
         float latitude = json["Latitude"];
@@ -143,6 +150,9 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         String fixClosingTime = json["AutomaticClosingTime"];
         config.setFixOpeningTime(fixOpeningTime);
         config.setFixClosingTime(fixClosingTime);
+
+        // Save all parameters
+        config.saveAll();
 
         notifyClients("feedback", "Data received");
     }
