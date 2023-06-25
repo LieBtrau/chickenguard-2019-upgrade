@@ -1,21 +1,72 @@
-#include "VoltageMonitor.h"
+#include "powerControl.h"
 #include "pins.h"
 
-VoltageMonitor::VoltageMonitor(const float voltageDividerScale, const uint8_t pin) : _voltageDividerScale(voltageDividerScale),
-                                                                                     _pin(pin)
+static const char* TAG = "powerControl";
+
+powerControl::powerControl(const BatteryTech batteryTech, const uint32_t cellCount, const float voltageDividerScale) : 
+    _batteryTech(batteryTech),
+    _cellCount(cellCount),
+    _voltageDividerScale(voltageDividerScale)    
 {
 }
 
-uint32_t VoltageMonitor::getVoltage_mV()
+bool powerControl::init()
+{
+    pinMode(EN_PWR, OUTPUT);
+    digitalWrite(EN_PWR, HIGH); // take over power enable pin from momentary switch to keep power on when user releases button.
+    _powerOnPeriod.start(POWERED_ON_PERIOD, AsyncDelay::MILLIS);
+
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, HIGH); // turn LED on, don't wait for timer to expire first.
+    _ledBlinkDelay.start(LED_BLINK_PERIOD, AsyncDelay::MILLIS);
+
+    if(getVoltage_percent() < LOW_BATTERY_PERCENT)
+    {
+        ESP_LOGE(TAG, "Battery voltage is too low");
+        _batteryLow = true;
+    }
+    else
+    {
+        _batteryLow = false;
+        digitalWrite(LED_PIN, LOW); // turn LED off
+    }
+    return true;
+}
+
+void powerControl::run()
+{
+    if (_powerOnPeriod.isExpired())
+    {
+        /**
+         * @brief Power off the device when powered from the battery.
+         */
+        ESP_LOGD(TAG, "Powering off");
+        digitalWrite(EN_PWR, LOW);
+
+        // In case USB or debug-port is connected, the device will stay powered and we will arrive here.
+        // Put the device in deep sleep to save power.
+        ESP_LOGD(TAG, "Entering deep sleep");
+        esp_deep_sleep_start();
+
+        // Zzz....zzz....
+    }
+    if (_ledBlinkDelay.isExpired() && _batteryLow)
+    {
+        _ledBlinkDelay.repeat();
+        digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+    }
+}
+
+uint32_t powerControl::getVoltage_mV()
 {
     const int SAMPLE_COUNT = 10;
     int adcValue = 0;
     const uint32_t MAX_mV_MEASUREMENT = 3500;
 
-    int sampleCount=0;
-    while(sampleCount < SAMPLE_COUNT)
+    int sampleCount = 0;
+    while (sampleCount < SAMPLE_COUNT)
     {
-        uint32_t measurement = analogReadMilliVolts(_pin);
+        uint32_t measurement = analogReadMilliVolts(SNS_VMOTOR);
         if (measurement < MAX_mV_MEASUREMENT)
         {
             adcValue += measurement;
@@ -26,12 +77,20 @@ uint32_t VoltageMonitor::getVoltage_mV()
     return adcValue * _voltageDividerScale / SAMPLE_COUNT;
 }
 
-uint32_t VoltageMonitor::getVoltage_percent(BatteryTech batteryTech, uint32_t cellCount)
+
+/**
+ * @brief Get the Voltage percent object
+ * @details Get the voltage as a percentage of the battery technology and cell count.  The implementation is a suggestion of Github Copilot.
+ * @param batteryTech BatteryTech::Alkaline or BatteryTech::NiMH
+ * @param cellCount Number of battery cells in series.
+ * @return the voltage as a percentage [0..100] of the battery technology and cell count.
+ */
+uint32_t powerControl::getVoltage_percent()
 {
-    uint32_t voltage = getVoltage_mV() / cellCount;
+    uint32_t voltage = getVoltage_mV() / _cellCount;
     uint32_t minVoltage = 0;
     uint32_t maxVoltage = 0;
-    switch (batteryTech)
+    switch (_batteryTech)
     {
     case BatteryTech::Alkaline:
         minVoltage = 900;
