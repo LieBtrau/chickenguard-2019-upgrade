@@ -1,7 +1,7 @@
 #include "NonVolatileStorage.h"
 #include "esp_log.h"
 
-const char *TAG = "NonVolatileStorage";
+static const char *TAG = "NonVolatileStorage";
 
 const bool RO_MODE = true;
 const bool RW_MODE = false;
