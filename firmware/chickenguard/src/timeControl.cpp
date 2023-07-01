@@ -32,11 +32,9 @@ static const timeZone_t timeZones[1] =
 };
 
 TimeControl::TimeControl(int8_t (*readBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, uint8_t *data),
-                         bool (*writeBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, const uint8_t *data),
-                         void (*alarm1Triggered)(void),
-                         void (*alarm2Triggered)(void)) : _rtc(readBytes, writeBytes), _timeZoneSet(false),
-                                                          _alarm1Triggered(alarm1Triggered), _alarm2Triggered(alarm2Triggered),
-                                                          _alarmPollingDelay(1000, AsyncDelay::MILLIS)
+                         bool (*writeBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, const uint8_t *data)) : 
+                         _rtc(readBytes, writeBytes), 
+                         _timeZoneSet(false)
 {
 }
 
@@ -79,24 +77,30 @@ bool TimeControl::init(String timeZone)
             strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
             ESP_LOGI(TAG, "The current local date/time is: %s", strftime_buf);
         }
-
-        // Did an alarm cause an MCU wakeup?
-        if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm1))
-        {
-            ESP_LOGI(TAG, "Alarm 1 triggered");
-            _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm1);
-            _alarm1Triggered();
-        }
-        if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm2))
-        {
-            ESP_LOGI(TAG, "Alarm 2 triggered");
-            _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm2);
-            _alarm2Triggered();
-        }
     }
-    _alarmPollingDelay.restart();
-
     return _rtc.enableSquareWave(false); // disable square wave output to save power
+}
+
+bool TimeControl::openDoorAlarmTriggered()
+{
+    if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm1))
+    {
+        ESP_LOGI(TAG, "Alarm 1 triggered");
+        _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm1);
+        return true;
+    }
+    return false;
+}
+
+bool TimeControl::closeDoorAlarmTriggered()
+{
+    if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm2))
+    {
+        ESP_LOGI(TAG, "Alarm 2 triggered");
+        _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm2);
+        return true;
+    }
+    return false;
 }
 
 bool TimeControl::hasValidTime()
@@ -203,37 +207,6 @@ void TimeControl::doubleToHrMin(double time, uint8_t *hour, uint8_t *minute)
     int m = int(round(time * 60));
     *hour = (m / 60) % 24;
     *minute = m % 60;
-}
-
-/**
- * @brief Run the time control
- * @note This function should be called in the main loop.  It's used for debugging purposes only.
- * During debugging, the MCU will be powered, so the incoming alarm will not wake up the MCU.  To simulate the behavior of waking up, this
- * function will poll the RTC for an alarm trigger.
- *
- * @return true alarm triggered
- * @return false no alarm triggered
- */
-bool TimeControl::run()
-{
-    if (!_alarmPollingDelay.isExpired())
-    {
-        return false;
-    }
-    _alarmPollingDelay.restart();
-    if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm1))
-    {
-        _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm1);
-        _alarm1Triggered();
-        return true;
-    }
-    if (_rtc.isAlarmTriggered(DS1337::AlarmType::Alarm2))
-    {
-        _rtc.acknowledgeAlarm(DS1337::AlarmType::Alarm2);
-        _alarm2Triggered();
-        return true;
-    }
-    return false;
 }
 
 bool TimeControl::disableAlarms()
