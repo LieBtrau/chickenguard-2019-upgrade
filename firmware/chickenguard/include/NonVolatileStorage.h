@@ -17,9 +17,9 @@ public:
     void saveAll();
     void getGeoLocation(float& latitude, float& longitude) const;
     void setGeoLocation(float latitude, float longitude);
-    void getFixOpeningTime(uint8_t hour, uint8_t minutes) const;
+    void getFixOpeningTime(uint8_t& hour, uint8_t& minutes) const;
     void setFixOpeningTime(String hour_minutes);
-    void getFixClosingTime(uint8_t hour, uint8_t minutes) const;
+    void getFixClosingTime(uint8_t& hour, uint8_t& minutes) const;
     void setFixClosingTime(String hour_minutes);
     DoorControl getDoorControl() const;
     void setDoorControl(String doorControl);

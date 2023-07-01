@@ -112,7 +112,7 @@ void NonVolatileStorage::getGeoLocation(float &latitude, float &longitude) const
     longitude = _longitude;
 }
 
-void NonVolatileStorage::getFixOpeningTime(uint8_t hour, uint8_t minutes) const
+void NonVolatileStorage::getFixOpeningTime(uint8_t& hour, uint8_t& minutes) const
 {
     hour = _fixOpeningTime_hour;
     minutes = _fixOpeningTime_minute;
@@ -122,14 +122,16 @@ void NonVolatileStorage::setFixOpeningTime(String hour_minutes)
 {
     uint8_t hour = 0;
     uint8_t minutes = 0;
+    ESP_LOGI(TAG, "Setting fix opening time to %s", hour_minutes.c_str());
     if (parseTimeString(hour_minutes, hour, minutes))
     {
         _fixOpeningTime_hour = hour;
         _fixOpeningTime_minute = minutes;
+        ESP_LOGI(TAG, "Fix opening time set to %02d:%02d", hour, minutes);
     }
 }
 
-void NonVolatileStorage::getFixClosingTime(uint8_t hour, uint8_t minutes) const
+void NonVolatileStorage::getFixClosingTime(uint8_t& hour, uint8_t& minutes) const
 {
     hour = _fixClosingTime_hour;
     minutes = _fixClosingTime_minute;
@@ -142,6 +144,7 @@ void NonVolatileStorage::setFixClosingTime(String hour_minutes)
     {
         _fixClosingTime_hour = hour;
         _fixClosingTime_minute = minutes;
+        ESP_LOGI(TAG, "Fix closing time set to %02d:%02d", hour, minutes);
     }
 }
 
