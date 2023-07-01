@@ -40,7 +40,7 @@ void powerControl::run()
         /**
          * @brief Power off the device when powered from the battery.
          */
-        ESP_LOGD(TAG, "Powering off");
+        ESP_LOGD(TAG, "Time on period expired");
         digitalWrite(EN_PWR, LOW);
 
         // In case USB or debug-port is connected, the device will stay powered and we will arrive here.
