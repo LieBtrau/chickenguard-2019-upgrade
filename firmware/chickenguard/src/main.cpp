@@ -8,6 +8,7 @@
 #include "NonVolatileStorage.h"
 #include "i2c_hal.h"
 #include "powerControl.h"
+#include "motorControl.h"
 
 static const char *TAG = "Main";
 
@@ -25,10 +26,11 @@ static NonVolatileStorage config;
 static Webservice webserver(&config, updateTime, webConfigDone);
 // Voltage divider scale = (R306+R309)/R309
 static powerControl power(powerControl::BatteryTech::Alkaline, 4, 4.03);
+static MotorControl motor(MOTOR_IN1, MOTOR_IN2, MOTOR_CURRENT_SENSE);
 
 void setup()
 {
-
+    motor.init();
     power.init();
 
     /**
@@ -46,12 +48,12 @@ void setup()
     assert(i2c_hal_init(I2C_SDA, I2C_SCL));
     assert(timeControl.init(config.getTimeZone()));
 
-    // if (!timeControl.hasValidTime())
-    // {
-    //     ESP_LOGE(TAG, "Time is not valid");
+    if (!timeControl.hasValidTime())
+    {
+        ESP_LOGE(TAG, "Time is not valid");
         // User will have to set the time using the webserver
         webserver.setup();
-    // }
+    }
 }
 
 void loop()
@@ -59,6 +61,7 @@ void loop()
     webserver.loop();
     power.run();
     timeControl.run();
+    motor.run();
 }
 
 void liftDoor()
