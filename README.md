@@ -40,6 +40,7 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
 * [JP_chickenDoor](https://github.com/f2knpw/JP_chickenDoor/blob/master/JP_ESP32_ChickenDoor_wifi_IRsensor_Arduino.ino)
 * [ChickenGuard](https://www.chickenguard.be/)
   * Uses an 8bit MCU (PIC18F14K22), an external RTC with 32.768kHz crystal and an SOIC8 motor driver.
+  * The PCB was covered in epoxy, which has been removed using a hot air gun.  Some components got damaged in the process.  Aceton might also work (it should certainly work in case of hot glue).
 
 ---
 
