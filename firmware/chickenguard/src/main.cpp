@@ -9,6 +9,7 @@
 #include "i2c_hal.h"
 #include "powerControl.h"
 #include "motorControl.h"
+#include "buttons.h"
 
 static const char *TAG = "Main";
 
@@ -30,6 +31,7 @@ static Webservice webserver(&config, updateTime, webConfigDone);
 static powerControl power(powerControl::BatteryTech::Alkaline, 4, 4.03);
 static MotorControl motor(MOTOR_IN1, MOTOR_IN2, MOTOR_CURRENT_SENSE);
 static AsyncDelay rtcUpdateDelay;
+static ButtonReader button(SNS_BUTTON);
 
 void setup()
 {
@@ -72,27 +74,38 @@ void loop()
         if (timeControl.openDoorAlarmTriggered())
         {
             setCloseDoorAlarm(config.getDoorControl());
-            openDoor();
+            motor.openDoor();
         }
         else if (timeControl.closeDoorAlarmTriggered())
         {
             // Update the sunrise alarm
             setOpenDoorAlarm(config.getDoorControl());
-            closeDoor();
+            motor.closeDoor();
         }
     }
 
     motor.run();
-}
+    if(button.update())
+    {
+        // Button state has changed (key press, key release)
+        switch(button.getButton())
+        {
+            case ButtonReader::ButtonSelection::Down:
+                motor.closeDoor();
+                break;
+            case ButtonReader::ButtonSelection::Up:
+                motor.openDoor();
+                break;
+            case ButtonReader::ButtonSelection::Standby:
+                webserver.setup();
+                break;
+            case ButtonReader::ButtonSelection::None:
+            default:
+                // Button released
+                break;
+        }
 
-void openDoor()
-{
-    ESP_LOGI(TAG, "Lift door");
-}
-
-void closeDoor()
-{
-    ESP_LOGI(TAG, "Lower door");
+    }
 }
 
 void webConfigDone()
@@ -113,6 +126,11 @@ void updateTime(long utc, const String timezone)
     timeControl.updateMcuTime(utc, timezone);
 }
 
+/**
+ * @brief Program the alarm to open the door
+ * 
+ * @param doorControl : controlled by sunrise/sunset or fix time
+ */
 void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
 {
     switch (doorControl)
@@ -135,6 +153,11 @@ void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
     }
 }
 
+/**
+ * @brief Program the alarm to close the door
+ * 
+ * @param doorControl : controlled by sunrise/sunset or fix time
+ */
 void setCloseDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
 {
     switch (doorControl)

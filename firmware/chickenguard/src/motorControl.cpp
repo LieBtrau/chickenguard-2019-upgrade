@@ -2,11 +2,10 @@
 
 static const char *TAG = "MotorControl";
 
-MotorControl::MotorControl(uint8_t pinIn1, uint8_t pinIn2, uint8_t pinCurrentSense) : 
-_pinIn1(pinIn1), 
-_pinIn2(pinIn2), 
-_pinCurrentSense(pinCurrentSense),
-_currentSense(20)
+MotorControl::MotorControl(uint8_t pinIn1, uint8_t pinIn2, uint8_t pinCurrentSense) : _pinIn1(pinIn1),
+                                                                                      _pinIn2(pinIn2),
+                                                                                      _pinCurrentSense(pinCurrentSense),
+                                                                                      _currentSense(20)
 {
 }
 
@@ -29,57 +28,113 @@ void MotorControl::init()
  */
 bool MotorControl::run()
 {
-    if (_motorOnTime.isExpired())
+    const unsigned long DEAD_TIME = 2000;
+    const unsigned long RAISE_DOOR_TIME = 25000;
+    const unsigned long LOWER_DOOR_TIME = 25000;
+
+    const float RAISING_UNDERLOAD_CURRENT = 1000;
+    const float RAISING_OVERLOAD_CURRENT = 2000;
+    const float LOWERING_OVERLOAD_CURRENT = 700;
+    float current = 0;
+
+    switch (_state)
     {
-        off();
+    case MotorState::Off:
+        digitalWrite(_pinIn1, LOW);
+        digitalWrite(_pinIn2, LOW);
+        _motorOnTime.expire();
         return false;
-    }
-    // Motor is running
-    if (_AdcSamplingPeriod.isExpired())
-    {
-        //Time to sample the current sense
-        _AdcSamplingPeriod.repeat();
-        _currentSense.addValue(analogReadMilliVolts(_pinCurrentSense));
-        if(_currentSense.bufferIsFull())
+    case MotorState::start_raise:
+        digitalWrite(_pinIn1, LOW);
+        digitalWrite(_pinIn2, HIGH);
+        _motorOnTime.start(DEAD_TIME, AsyncDelay::MILLIS);
+        _currentSense.clear();
+        _direction = MotorDirection::Raise;
+        _state = MotorState::dead_time;
+        return true;
+    case MotorState::start_lower:
+        digitalWrite(_pinIn1, HIGH);
+        digitalWrite(_pinIn2, LOW);
+        _motorOnTime.start(DEAD_TIME, AsyncDelay::MILLIS);
+        _currentSense.clear();
+        _direction = MotorDirection::Lower;
+        _state = MotorState::dead_time;
+        return true;
+    case MotorState::dead_time:
+        // Wait for the motor to start and for the current to stabilize
+        if (_motorOnTime.isExpired())
         {
-            ESP_LOGD(TAG, "Current sense: %2f", _currentSense.getAverage());
+            _motorOnTime.start((_direction == MotorDirection::Raise) ? RAISE_DOOR_TIME : LOWER_DOOR_TIME, AsyncDelay::MILLIS);
+            _state = MotorState::running;
         }
         return true;
+    case MotorState::running:
+        if (_motorOnTime.isExpired())
+        {
+            _state = MotorState::Off;
+        }
+        if (readAdc(current))
+        {
+            ESP_LOGI(TAG, "Current: %f", current);
+        }
+        if(current > RAISING_OVERLOAD_CURRENT) 
+        {
+            ESP_LOGI(TAG, "Overload current detected");
+            _state = MotorState::Off;
+        }
+        if(_direction == MotorDirection::Raise && current < RAISING_UNDERLOAD_CURRENT)
+        {
+            // The motor is pulling up loose rope.  Reset the timer so the door will be completely raised when the motor starts pulling it.
+            ESP_LOGI(TAG, "Raising underload current detected");
+            _motorOnTime.restart();
+        }
+        if(_direction == MotorDirection::Lower && current > LOWERING_OVERLOAD_CURRENT)
+        {
+            ESP_LOGI(TAG, "Lowering overload current detected");
+            _state = MotorState::Off;
+        }
+        return true;
+    default:
+        _state = MotorState::Off;
+        return false;
     }
-    return true;
 }
 
-void MotorControl::raiseDoor(uint16_t duration_ms)
+void MotorControl::openDoor()
 {
-    digitalWrite(_pinIn1, LOW);
-    digitalWrite(_pinIn2, HIGH);
-    _motorOnTime.start(duration_ms, AsyncDelay::MILLIS);
-    _currentSense.clear();
+    _state = MotorState::start_raise;
 }
 
-void MotorControl::lowerDoor(uint16_t duration_ms)
+void MotorControl::closeDoor()
 {
-    digitalWrite(_pinIn1, HIGH);
-    digitalWrite(_pinIn2, LOW);
-    _motorOnTime.start(duration_ms, AsyncDelay::MILLIS);
-    _currentSense.clear();
+    _state = MotorState::start_lower;
 }
 
 void MotorControl::off()
 {
-    digitalWrite(_pinIn1, LOW);
-    digitalWrite(_pinIn2, LOW);
-    _motorOnTime.expire();
+    _state = MotorState::Off;
+}
+
+bool MotorControl::readAdc(float &current)
+{
+    if (_AdcSamplingPeriod.isExpired())
+    {
+        _AdcSamplingPeriod.start(50, AsyncDelay::MILLIS);
+        _currentSense.addValue(analogRead(_pinCurrentSense));
+        current = _currentSense.getAverage();
+        return true;
+    }
+    return false;
 }
 
 void MotorControl::demo()
 {
     ESP_LOGI(TAG, "Raise door");
-    raiseDoor(10000);
+    openDoor();
     while (run())
         ;
     ESP_LOGI(TAG, "Lower door");
-    lowerDoor(10000);
+    closeDoor();
     while (run())
         ;
     off();

@@ -13,13 +13,28 @@ class MotorControl {
         bool run();
         void off();
         void demo();
-        void raiseDoor(uint16_t duration_ms);
-        void lowerDoor(uint16_t duration_ms);
+        void openDoor();
+        void closeDoor();
     private:
+        enum class MotorState {
+            Off,
+            start_raise,
+            start_lower,
+            dead_time,
+            running
+        };
+        enum class MotorDirection {
+            Raise,
+            Lower,
+            None
+        };
+        bool readAdc(float& current);
         uint8_t _pinIn1;
         uint8_t _pinIn2;
         uint8_t _pinCurrentSense;
         AsyncDelay _motorOnTime;
         AsyncDelay _AdcSamplingPeriod;
         RunningAverage _currentSense;
+        MotorState _state  = MotorState::Off;
+        MotorDirection _direction = MotorDirection::None;
 };

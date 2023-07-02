@@ -62,6 +62,8 @@ Webservice::~Webservice()
 
 void Webservice::setup()
 {
+    if(isInitialized)
+        return;
     if (!SPIFFS.begin())
     {
         ESP_LOGE(TAG, "Cannot mount SPIFFS volume...be sure to upload Filesystem Image before uploading the sketch");
