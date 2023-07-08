@@ -10,6 +10,9 @@
 #include "powerControl.h"
 #include "motorControl.h"
 #include "buttons.h"
+#include "LiquidCrystal_I2C.h"
+#include "TCA9534.h"
+#include "MCP40D18.h"
 
 static const char *TAG = "Main";
 
@@ -32,6 +35,11 @@ static powerControl power(powerControl::BatteryTech::Alkaline, 4, 4.03);
 static MotorControl motor(MOTOR_IN1, MOTOR_IN2, MOTOR_CURRENT_SENSE);
 static AsyncDelay rtcUpdateDelay;
 static ButtonReader button(SNS_BUTTON);
+static TCA9534 ioExpander(true, true, true);
+static LiquidCrystal_I2C lcd(&ioExpander);
+static MCP40D18 potentiometer;
+static const int LCD_COLUMS = 16;
+static const int LCD_ROWS = 2;
 
 void setup()
 {
@@ -46,66 +54,86 @@ void setup()
     Serial.begin(115200);
     while (!Serial)
         ;
+    delay(1000);
 
     ESP_LOGD(TAG, "\r\nBuild %s\r\n", __TIMESTAMP__);
 
     config.restoreAll();
     assert(i2c_hal_init(I2C_SDA, I2C_SCL));
+
+    assert(detectI2cDevice(ioExpander.getI2cAddress()));
+    ioExpander.attach(readBytes, writeBytes);
+    ioExpander.setPortDirection(0x00); // 0x00 = All outputs (yes, the TCA9534 is inverted)
+
+    assert(detectI2cDevice(potentiometer.getI2cAddress()));
+    potentiometer.attach(readBytes, writeBytes);
+
+    lcd.init(delayMicroseconds);
+    lcd.config(LCD_COLUMS, LCD_ROWS);
+    lcd.clear();
+    lcd.setCursor(1, 0);
+    lcd.print("Hello world!");
+    lcd.setCursor(0, 1);
+    lcd.print("Rambo III");
+    lcd.setBacklight(1);
+    potentiometer.setWiper(16); // 16 gives best LCD contrast
+
     assert(timeControl.init(config.getTimeZone()));
 
-    if (!timeControl.hasValidTime())
-    {
-        ESP_LOGE(TAG, "Time is not valid");
-        // User will have to set the time using the webserver
-        webserver.setup();
-    }
+    // if (!timeControl.hasValidTime())
+    // {
+    //     ESP_LOGE(TAG, "Time is not valid");
+    //     // User will have to set the time using the webserver
+    //     webserver.setup();
+    // }
+    ESP_LOGD(TAG, "Ready to rumble");
 }
+
 
 void loop()
 {
-    webserver.loop();
-    power.run();
+    // webserver.loop();
+    // power.run();
 
-    // Handle alarms
-    if (rtcUpdateDelay.isExpired() && timeControl.hasValidTime())
-    {
-        rtcUpdateDelay.start(1000, AsyncDelay::MILLIS);
+    // // Handle alarms
+    // if (rtcUpdateDelay.isExpired() && timeControl.hasValidTime())
+    // {
+    //     rtcUpdateDelay.start(1000, AsyncDelay::MILLIS);
 
-        if (timeControl.openDoorAlarmTriggered())
-        {
-            setCloseDoorAlarm(config.getDoorControl());
-            motor.openDoor();
-        }
-        else if (timeControl.closeDoorAlarmTriggered())
-        {
-            // Update the sunrise alarm
-            setOpenDoorAlarm(config.getDoorControl());
-            motor.closeDoor();
-        }
-    }
+    //     if (timeControl.openDoorAlarmTriggered())
+    //     {
+    //         setCloseDoorAlarm(config.getDoorControl());
+    //         motor.openDoor();
+    //     }
+    //     else if (timeControl.closeDoorAlarmTriggered())
+    //     {
+    //         // Update the sunrise alarm
+    //         setOpenDoorAlarm(config.getDoorControl());
+    //         motor.closeDoor();
+    //     }
+    // }
+    // motor.run();
+    // if(button.update())
+    // {
+    //     // Button state has changed (key press, key release)
+    //     switch(button.getButton())
+    //     {
+    //         case ButtonReader::ButtonSelection::Down:
+    //             motor.closeDoor();
+    //             break;
+    //         case ButtonReader::ButtonSelection::Up:
+    //             motor.openDoor();
+    //             break;
+    //         case ButtonReader::ButtonSelection::Standby:
+    //             webserver.setup();
+    //             break;
+    //         case ButtonReader::ButtonSelection::None:
+    //         default:
+    //             // Button released
+    //             break;
+    //     }
 
-    motor.run();
-    if(button.update())
-    {
-        // Button state has changed (key press, key release)
-        switch(button.getButton())
-        {
-            case ButtonReader::ButtonSelection::Down:
-                motor.closeDoor();
-                break;
-            case ButtonReader::ButtonSelection::Up:
-                motor.openDoor();
-                break;
-            case ButtonReader::ButtonSelection::Standby:
-                webserver.setup();
-                break;
-            case ButtonReader::ButtonSelection::None:
-            default:
-                // Button released
-                break;
-        }
-
-    }
+    // }
 }
 
 void webConfigDone()
@@ -128,7 +156,7 @@ void updateTime(long utc, const String timezone)
 
 /**
  * @brief Program the alarm to open the door
- * 
+ *
  * @param doorControl : controlled by sunrise/sunset or fix time
  */
 void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
@@ -155,7 +183,7 @@ void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
 
 /**
  * @brief Program the alarm to close the door
- * 
+ *
  * @param doorControl : controlled by sunrise/sunset or fix time
  */
 void setCloseDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
