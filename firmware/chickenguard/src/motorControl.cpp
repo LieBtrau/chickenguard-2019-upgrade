@@ -31,6 +31,7 @@ bool MotorControl::run()
     const unsigned long DEAD_TIME = 2000;
     const unsigned long RAISE_DOOR_TIME = 25000;
     const unsigned long LOWER_DOOR_TIME = 25000;
+    const unsigned long LOOSE_ROPE_TIME = 5000;
 
     const float RAISING_UNDERLOAD_CURRENT = 1000;
     const float RAISING_OVERLOAD_CURRENT = 2000;
@@ -68,6 +69,24 @@ bool MotorControl::run()
             _state = MotorState::running;
         }
         return true;
+    case MotorState::raising_under_load:
+        //Pull up loose rope until timeout or until the load is detected.
+        if (_motorOnTime.isExpired())
+        {
+            //We won't be pulling up loose rope forever.
+            _state = MotorState::Off;
+        }
+        if (readAdc(current))
+        {
+            ESP_LOGI(TAG, "Underload current: %f", current);
+        }
+        if(current > RAISING_UNDERLOAD_CURRENT)
+        {
+            ESP_LOGI(TAG, "Underload condition ended");
+            _motorOnTime.start(RAISE_DOOR_TIME, AsyncDelay::MILLIS);
+            _state = MotorState::running;
+        }
+        return true;
     case MotorState::running:
         if (_motorOnTime.isExpired())
         {
@@ -84,9 +103,10 @@ bool MotorControl::run()
         }
         if(_direction == MotorDirection::Raise && current < RAISING_UNDERLOAD_CURRENT)
         {
-            // The motor is pulling up loose rope.  Reset the timer so the door will be completely raised when the motor starts pulling it.
+            // The motor is pulling up loose rope.
             ESP_LOGI(TAG, "Raising underload current detected");
-            _motorOnTime.restart();
+            _motorOnTime.start(LOOSE_ROPE_TIME, AsyncDelay::MILLIS);
+            _state = MotorState::raising_under_load;
         }
         if(_direction == MotorDirection::Lower && current > LOWERING_OVERLOAD_CURRENT)
         {

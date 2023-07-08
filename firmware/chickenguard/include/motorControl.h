@@ -21,6 +21,7 @@ class MotorControl {
             start_raise,
             start_lower,
             dead_time,
+            raising_under_load,
             running
         };
         enum class MotorDirection {
