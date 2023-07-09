@@ -71,7 +71,9 @@ private:
     enum ControlBits
     {
         Control_nETIME = 7, //!< Enable oscillator
-        Control_INTCN = 2,  //!< Interrupt control      
+        Control_INTCN = 2,  //!< Interrupt control
+        Control_RS2 = 4,    //!< Rate select
+        Control_RS1 = 3,    //!< Rate select
         Control_A2IE = 1,   //!< Alarm 2 interrupt enable
         Control_A1IE = 0    //!< Alarm 1 interrupt enable
     };

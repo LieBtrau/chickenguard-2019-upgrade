@@ -135,7 +135,16 @@ bool DS1337::setRegisterBit(Register reg, uint8_t bit, bool value)
 
 bool DS1337::enableSquareWave(bool isEnabled)
 {
-    return setRegisterBit(Register::CONTROL, Control_INTCN, !isEnabled);
+    if(isEnabled)
+    {
+        return setRegisterBit(Register::CONTROL, Control_INTCN, false) &&
+               setRegisterBit(Register::CONTROL, Control_RS1, true) &&
+               setRegisterBit(Register::CONTROL, Control_RS2, true);
+    }
+    else
+    {
+        return setRegisterBit(Register::CONTROL, Control_INTCN, true);
+    }
 }
 
 bool DS1337::acknowledgeAlarm(AlarmType alarm)
