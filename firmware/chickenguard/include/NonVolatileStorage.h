@@ -16,23 +16,23 @@ public:
     void restoreAll();
     void saveAll();
     void getGeoLocation(float& latitude, float& longitude) const;
-    void setGeoLocation(float latitude, float longitude);
+    void setGeoLocation(const float latitude, const float longitude);
     void getFixOpeningTime(uint8_t& hour, uint8_t& minutes) const;
-    void setFixOpeningTime(String hour_minutes);
+    void setFixOpeningTime(const String hour_minutes);
     void getFixClosingTime(uint8_t& hour, uint8_t& minutes) const;
-    void setFixClosingTime(String hour_minutes);
+    void setFixClosingTime(const String hour_minutes);
     DoorControl getDoorControl() const;
-    void setDoorControl(String doorControl);
-    void setTimeZone(String timeZone);
+    void setDoorControl(const String doorControl);
+    void setTimeZone(const String timeZone);
     String getTimeZone() const;
 
 private:
-    bool parseTimeString(String hour_minutes, uint8_t& hour, uint8_t& minutes);
+    bool parseTimeString(const String hour_minutes, uint8_t& hour, uint8_t& minutes);
 
     //Wrapper functions prevent crashes when key is not present (in the event of a new firmware that has extra parameters)
-    float getFloat(const char* key, float defaultValue);
-    uint8_t getUChar(const char* key, uint8_t defaultValue);
-    String getString(const char* key, String defaultValue);
+    float getFloat(const char* key, const float defaultValue);
+    uint8_t getUChar(const char* key, const uint8_t defaultValue);
+    String getString(const char* key, const String defaultValue);
 
     Preferences _preferences;
     float _latitude = 0;

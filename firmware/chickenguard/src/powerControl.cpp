@@ -1,12 +1,11 @@
 #include "powerControl.h"
 #include "pins.h"
 
-static const char* TAG = "powerControl";
+static const char *TAG = "powerControl";
 
-powerControl::powerControl(const BatteryTech batteryTech, const uint32_t cellCount, const float voltageDividerScale) : 
-    _batteryTech(batteryTech),
-    _cellCount(cellCount),
-    _voltageDividerScale(voltageDividerScale)    
+powerControl::powerControl(const BatteryTech batteryTech, const uint32_t cellCount, const float voltageDividerScale) : _batteryTech(batteryTech),
+                                                                                                                       _cellCount(cellCount),
+                                                                                                                       _voltageDividerScale(voltageDividerScale)
 {
 }
 
@@ -20,16 +19,6 @@ bool powerControl::init()
     digitalWrite(LED_PIN, HIGH); // turn LED on, don't wait for timer to expire first.
     _ledBlinkDelay.start(LED_BLINK_PERIOD, AsyncDelay::MILLIS);
 
-    if(getVoltage_percent() < LOW_BATTERY_PERCENT)
-    {
-        ESP_LOGE(TAG, "Battery voltage is too low");
-        _batteryLow = true;
-    }
-    else
-    {
-        _batteryLow = false;
-        digitalWrite(LED_PIN, LOW); // turn LED off
-    }
     return true;
 }
 
@@ -37,23 +26,23 @@ void powerControl::run()
 {
     if (_powerOnPeriod.isExpired())
     {
-        /**
-         * @brief Power off the device when powered from the battery.
-         */
         ESP_LOGD(TAG, "Time on period expired");
-        digitalWrite(EN_PWR, LOW);
-
-        // In case USB or debug-port is connected, the device will stay powered and we will arrive here.
-        // Put the device in deep sleep to save power.
-        ESP_LOGD(TAG, "Entering deep sleep");
-        esp_deep_sleep_start();
-
-        // Zzz....zzz....
+        powerOff();
     }
-    if (_ledBlinkDelay.isExpired() && _batteryLow)
+    if (_ledBlinkDelay.isExpired())
     {
         _ledBlinkDelay.repeat();
-        digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+        if (getVoltage_percent() < LOW_BATTERY_PERCENT)
+        {
+            ESP_LOGE(TAG, "Battery voltage is too low");
+            _batteryLow = true;
+            digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+        }
+        else
+        {
+            _batteryLow = false;
+            digitalWrite(LED_PIN, LOW); // turn LED off
+        }
     }
 }
 
@@ -76,7 +65,6 @@ uint32_t powerControl::getVoltage_mV()
     }
     return adcValue * _voltageDividerScale / SAMPLE_COUNT;
 }
-
 
 /**
  * @brief Get the Voltage percent object
@@ -105,4 +93,25 @@ uint32_t powerControl::getVoltage_percent()
     uint32_t voltageInRange = voltage - minVoltage;
     uint32_t percent = voltageInRange * 100 / range;
     return percent;
+}
+
+bool powerControl::isBatteryLow() const
+{
+    return _batteryLow;
+}
+
+void powerControl::powerOff()
+{
+    delay(100); // wait for serial output to finish
+    /**
+     * @brief Power off the device when powered from the battery.
+     */
+    digitalWrite(EN_PWR, LOW);
+
+    // In case USB or debug-port is connected, the device will stay powered and we will arrive here.
+    // Put the device in deep sleep to save power.
+    ESP_LOGD(TAG, "Entering deep sleep");
+    esp_deep_sleep_start();
+
+    // Zzz....zzz....
 }

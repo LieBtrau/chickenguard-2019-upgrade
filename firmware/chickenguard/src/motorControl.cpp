@@ -13,12 +13,18 @@ MotorControl::~MotorControl()
 {
 }
 
-void MotorControl::init()
+void MotorControl::init(float motorVoltage)
 {
     pinMode(_pinIn1, OUTPUT);
     pinMode(_pinIn2, OUTPUT);
     off();
     _AdcSamplingPeriod.start(50, AsyncDelay::MILLIS);
+    ESP_LOGI(TAG, "Motor voltage: %f", motorVoltage);
+    // Limits for current, in mA, measured at VMOTOR=4.5V
+    RAISING_UNDERLOAD_CURRENT = limitConversion(1050, motorVoltage);
+    RAISING_OVERLOAD_CURRENT = limitConversion(1700, motorVoltage);
+    LOWERING_OVERLOAD_CURRENT = limitConversion(580, motorVoltage);
+    NO_MOTOR_CURRENT = limitConversion(250, motorVoltage);
 }
 
 /**
@@ -28,14 +34,11 @@ void MotorControl::init()
  */
 bool MotorControl::run()
 {
-    const unsigned long DEAD_TIME = 2000;
+    const unsigned long DEAD_TIME = 3000;
     const unsigned long RAISE_DOOR_TIME = 25000;
     const unsigned long LOWER_DOOR_TIME = 25000;
     const unsigned long LOOSE_ROPE_TIME = 5000;
 
-    const float RAISING_UNDERLOAD_CURRENT = 1000;
-    const float RAISING_OVERLOAD_CURRENT = 2000;
-    const float LOWERING_OVERLOAD_CURRENT = 700;
     float current = 0;
 
     switch (_state)
@@ -70,17 +73,22 @@ bool MotorControl::run()
         }
         return true;
     case MotorState::raising_under_load:
-        //Pull up loose rope until timeout or until the load is detected.
+        // Pull up loose rope until timeout or until the load is detected.
         if (_motorOnTime.isExpired())
         {
-            //We won't be pulling up loose rope forever.
+            // We won't be pulling up loose rope forever.
             _state = MotorState::Off;
         }
         if (readAdc(current))
         {
-            ESP_LOGI(TAG, "Underload current: %f", current);
+            ESP_LOGI(TAG, "Underload current: %2f < %2f", current, RAISING_UNDERLOAD_CURRENT);
         }
-        if(current > RAISING_UNDERLOAD_CURRENT)
+        if (current < NO_MOTOR_CURRENT)
+        {
+            ESP_LOGI(TAG, "No motor current detected: %2f < %2f", current, NO_MOTOR_CURRENT);
+            _state = MotorState::Off;
+        }
+        if (current > RAISING_UNDERLOAD_CURRENT)
         {
             ESP_LOGI(TAG, "Underload condition ended");
             _motorOnTime.start(RAISE_DOOR_TIME, AsyncDelay::MILLIS);
@@ -96,21 +104,26 @@ bool MotorControl::run()
         {
             ESP_LOGI(TAG, "Current: %f", current);
         }
-        if(current > RAISING_OVERLOAD_CURRENT) 
+        if (current < NO_MOTOR_CURRENT)
         {
-            ESP_LOGI(TAG, "Overload current detected");
+            ESP_LOGI(TAG, "No motor current detected: %2f < %2f", current, NO_MOTOR_CURRENT);
             _state = MotorState::Off;
         }
-        if(_direction == MotorDirection::Raise && current < RAISING_UNDERLOAD_CURRENT)
+        if (current > RAISING_OVERLOAD_CURRENT)
+        {
+            ESP_LOGI(TAG, "Overload current detected: %2f > %2f", current, RAISING_OVERLOAD_CURRENT);
+            _state = MotorState::Off;
+        }
+        if (_direction == MotorDirection::Raise && current < RAISING_UNDERLOAD_CURRENT)
         {
             // The motor is pulling up loose rope.
-            ESP_LOGI(TAG, "Raising underload current detected");
+            ESP_LOGI(TAG, "Raising underload current detected: %2f < %2f", current, RAISING_UNDERLOAD_CURRENT);
             _motorOnTime.start(LOOSE_ROPE_TIME, AsyncDelay::MILLIS);
             _state = MotorState::raising_under_load;
         }
-        if(_direction == MotorDirection::Lower && current > LOWERING_OVERLOAD_CURRENT)
+        if (_direction == MotorDirection::Lower && current > LOWERING_OVERLOAD_CURRENT)
         {
-            ESP_LOGI(TAG, "Lowering overload current detected");
+            ESP_LOGI(TAG, "Lowering overload current detected: %2f > %2f", current, LOWERING_OVERLOAD_CURRENT);
             _state = MotorState::Off;
         }
         return true;
@@ -158,4 +171,21 @@ void MotorControl::demo()
     while (run())
         ;
     off();
+}
+
+/**
+ * @brief Convert current limit from 4.5V to motor voltage
+ * @details Measurements have shown that current at 6V is 20% higher than at 4.5V
+ *  Let y be the limit at 4.5V
+ *  Then the rico (a) is (1.2 * y - y) / (6V - 4.5V) = 0.2 * y / 1.5V = 2/15 * y
+ *  And the new limit (x) is y + a * (Vmotor - 4.5V)
+ * @param currentLimit4V5
+ * @return float
+ */
+float MotorControl::limitConversion(float currentLimit4V5, float motorVoltage_mV)
+{
+    float rico = 0.133 * currentLimit4V5;
+    float newLimit = currentLimit4V5 + rico * (motorVoltage_mV - 4500) * 1e-3f;
+    ESP_LOGI(TAG, "Current limit at 4.5V: %2f mA, new limit: %2f", currentLimit4V5, newLimit);
+    return newLimit;
 }

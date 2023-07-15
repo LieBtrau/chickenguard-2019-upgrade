@@ -10,9 +10,8 @@
 #include "powerControl.h"
 #include "motorControl.h"
 #include "buttons.h"
-#include "LiquidCrystal_I2C.h"
-#include "TCA9534.h"
-#include "MCP40D18.h"
+#include "display.h"
+#include "wifi_credentials.h"
 
 static const char *TAG = "Main";
 
@@ -20,12 +19,12 @@ static const char *TAG = "Main";
 #warning "USB mode enabled"
 #endif
 
-static void openDoor();
-static void closeDoor();
+static void displayWifiCredentials();
 static void webConfigDone();
 static void updateTime(long utc, const String timezone);
 static void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl);
 static void setCloseDoorAlarm(NonVolatileStorage::DoorControl const doorControl);
+static void handleButtonPress(ButtonReader::ButtonSelection buttonState);
 
 static TimeControl timeControl(readBytes, writeBytes);
 static NonVolatileStorage config;
@@ -33,19 +32,14 @@ static Webservice webserver(&config, updateTime, webConfigDone);
 // Voltage divider scale = (R306+R309)/R309
 static powerControl power(powerControl::BatteryTech::Alkaline, 4, 4.03);
 static MotorControl motor(MOTOR_IN1, MOTOR_IN2, MOTOR_CURRENT_SENSE);
-static AsyncDelay rtcUpdateDelay;
+static AsyncDelay rtcPollingDelay;
 static ButtonReader button(SNS_BUTTON);
-static TCA9534 ioExpander(true, true, true);
-static LiquidCrystal_I2C lcd(&ioExpander);
-static MCP40D18 potentiometer;
-static const int LCD_COLUMS = 16;
-static const int LCD_ROWS = 2;
+static Display display;
+static bool motorRunning = false;
+static AsyncDelay batteryStatusDelay;
 
 void setup()
 {
-    motor.init();
-    power.init();
-
     /**
      * Only needed for reading from serial port (either UART0 or USB CDC)
      * Reading : In ARDUINO_USB_MODE, the USB-CDC is used, otherwise UART0 is used.
@@ -54,86 +48,78 @@ void setup()
     Serial.begin(115200);
     while (!Serial)
         ;
-    delay(1000);
+    ESP_LOGD(TAG, "\r\nBuild %s\r\n", __DATE__ " " __TIME__);
 
-    ESP_LOGD(TAG, "\r\nBuild %s\r\n", __TIMESTAMP__);
-
+    power.init();
+    motor.init(power.getVoltage_mV());
     config.restoreAll();
     assert(i2c_hal_init(I2C_SDA, I2C_SCL));
-
-    assert(detectI2cDevice(ioExpander.getI2cAddress()));
-    ioExpander.attach(readBytes, writeBytes);
-    ioExpander.setPortDirection(0x00); // 0x00 = All outputs (yes, the TCA9534 is inverted)
-
-    assert(detectI2cDevice(potentiometer.getI2cAddress()));
-    potentiometer.attach(readBytes, writeBytes);
-
-    lcd.init(delayMicroseconds);
-    lcd.config(LCD_COLUMS, LCD_ROWS);
-    lcd.clear();
-    lcd.setCursor(1, 0);
-    lcd.print("Hello world!");
-    lcd.setCursor(0, 1);
-    lcd.print("Rambo III");
-    lcd.setBacklight(1);
-    potentiometer.setWiper(16); // 16 gives best LCD contrast
+    display.init(delayMicroseconds);
 
     assert(timeControl.init(config.getTimeZone()));
+    if (!timeControl.hasValidTime())
+    {
+        ESP_LOGE(TAG, "Time is not valid");
+        // User will have to set the time using the webserver
+        displayWifiCredentials();
+        webserver.setup();
+    }
 
-    // if (!timeControl.hasValidTime())
-    // {
-    //     ESP_LOGE(TAG, "Time is not valid");
-    //     // User will have to set the time using the webserver
-    //     webserver.setup();
-    // }
+    // Check if woken up by button press
+    while (!button.isButtonStateStable())
+    {
+        delay(10);
+    }
+    ButtonReader::ButtonSelection buttonState = button.getButton();
+    if (buttonState != ButtonReader::ButtonSelection::None)
+    {
+        handleButtonPress(buttonState);
+    }
     ESP_LOGD(TAG, "Ready to rumble");
+    batteryStatusDelay.start(1000, AsyncDelay::MILLIS);
 }
-
 
 void loop()
 {
-    // webserver.loop();
-    // power.run();
+    webserver.loop();
+    if(batteryStatusDelay.isExpired())
+    {
+        batteryStatusDelay.repeat();
+        //ESP_LOGI(TAG, "Battery voltage: %d mV", power.getVoltage_mV());
+        webserver.notifyClients("battery", String(power.getVoltage_percent()) + String("%"));
+    }
+    power.run();
 
-    // // Handle alarms
-    // if (rtcUpdateDelay.isExpired() && timeControl.hasValidTime())
-    // {
-    //     rtcUpdateDelay.start(1000, AsyncDelay::MILLIS);
+    // Handle alarms
+    if (rtcPollingDelay.isExpired() && timeControl.hasValidTime())
+    {
+        rtcPollingDelay.start(1000, AsyncDelay::MILLIS);
 
-    //     if (timeControl.openDoorAlarmTriggered())
-    //     {
-    //         setCloseDoorAlarm(config.getDoorControl());
-    //         motor.openDoor();
-    //     }
-    //     else if (timeControl.closeDoorAlarmTriggered())
-    //     {
-    //         // Update the sunrise alarm
-    //         setOpenDoorAlarm(config.getDoorControl());
-    //         motor.closeDoor();
-    //     }
-    // }
-    // motor.run();
-    // if(button.update())
-    // {
-    //     // Button state has changed (key press, key release)
-    //     switch(button.getButton())
-    //     {
-    //         case ButtonReader::ButtonSelection::Down:
-    //             motor.closeDoor();
-    //             break;
-    //         case ButtonReader::ButtonSelection::Up:
-    //             motor.openDoor();
-    //             break;
-    //         case ButtonReader::ButtonSelection::Standby:
-    //             webserver.setup();
-    //             break;
-    //         case ButtonReader::ButtonSelection::None:
-    //         default:
-    //             // Button released
-    //             break;
-    //     }
-
-    // }
+        if (timeControl.openDoorAlarmTriggered())
+        {
+            setCloseDoorAlarm(config.getDoorControl());
+            motor.openDoor();
+        }
+        else if (timeControl.closeDoorAlarmTriggered())
+        {
+            // Update the sunrise alarm
+            setOpenDoorAlarm(config.getDoorControl());
+            motor.closeDoor();
+        }
+    }
+    if (button.update())
+    {
+        // Button state has changed
+        handleButtonPress(button.getButton());
+    }
+    bool currentMotorRunning = motor.run();
+    if (motorRunning && !currentMotorRunning)
+    {
+        // Motor has stopped
+        ESP_LOGI(TAG, "Motor has stopped");
+        power.powerOff();
+    }
+    motorRunning = currentMotorRunning;
 }
 
 void webConfigDone()
@@ -145,6 +131,9 @@ void webConfigDone()
     // Set the alarms
     setOpenDoorAlarm(config.getDoorControl());
     setCloseDoorAlarm(config.getDoorControl());
+
+    // Power off
+    power.powerOff();
 }
 
 void updateTime(long utc, const String timezone)
@@ -206,4 +195,37 @@ void setCloseDoorAlarm(NonVolatileStorage::DoorControl const doorControl)
         timeControl.disableAlarms();
         break;
     }
+}
+
+void handleButtonPress(ButtonReader::ButtonSelection buttonState)
+{
+    switch (buttonState)
+    {
+    case ButtonReader::ButtonSelection::Down:
+        ESP_LOGI(TAG, "Button pressed: Down");
+        motor.closeDoor();
+        break;
+    case ButtonReader::ButtonSelection::Up:
+        ESP_LOGI(TAG, "Button pressed: Up");
+        motor.openDoor();
+        break;
+    case ButtonReader::ButtonSelection::Standby:
+        ESP_LOGI(TAG, "Button pressed: Start webserver");
+        displayWifiCredentials();
+        webserver.setup();
+        break;
+    case ButtonReader::ButtonSelection::None:
+    default:
+        // Button released
+        break;
+    }
+}
+
+void displayWifiCredentials()
+{
+    char ssid[16];
+    sprintf(ssid, "SSID: %s", WIFI_SSID);
+    char password[16];
+    sprintf(password, "Pass: %s", WIFI_PASS);
+    display.show(ssid, password);
 }

@@ -15,6 +15,8 @@ public:
     void run();
     uint32_t getVoltage_mV();
     uint32_t getVoltage_percent();
+    bool isBatteryLow() const;
+    void powerOff();
 private:
     const BatteryTech _batteryTech;
     const uint32_t _cellCount;

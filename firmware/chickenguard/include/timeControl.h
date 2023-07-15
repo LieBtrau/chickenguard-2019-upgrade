@@ -24,7 +24,9 @@ public:
 private:
     bool setTimeZone(String timeZone);
     void doubleToHrMin(double time, uint8_t *hr, uint8_t *min);
-    struct tm* toUtc(uint8_t hr, uint8_t min);
+    struct tm* localToUtcTimeObject(uint8_t hourLocal, uint8_t minuteLocal);
+    struct tm *utcToUtcTimeObject(uint8_t hourUtc, uint8_t minuteUtc);
+    void printLocalTime();
     DS1337 _rtc;
     bool _timeZoneSet = false;
 };

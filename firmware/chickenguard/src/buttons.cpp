@@ -43,24 +43,24 @@ bool ButtonReader::update()
 ButtonReader::ButtonSelection ButtonReader::getPushedButton()
 {
     uint32_t adcValue = analogReadMilliVolts(_adcPin);
-    const uint32_t MAX_BUTTON_DOWN_ADC_VALUE = 1500;
-    const uint32_t MAX_BUTTON_STANDBY_ADC_VALUE = 2200;
+    const uint32_t MAX_BUTTON_DOWN_ADC_VALUE = 1100;
+    const uint32_t MAX_BUTTON_STANDBY_ADC_VALUE = 2000;
     const uint32_t MAX_BUTTON_UP_ADC_VALUE = 2600;
     //ESP_LOGD(TAG, "ADC value: %d", adcValue);
     delay(100);
     if (adcValue < MAX_BUTTON_DOWN_ADC_VALUE)
     {
-        // ADC value is 647mV when button is pressed
+        // ADC value is 604mV when button is pressed
         return ButtonSelection::Down;
     }
     else if (adcValue < MAX_BUTTON_STANDBY_ADC_VALUE)
     {
-        // ADC value is 1970mV when button is pressed
+        // ADC value is 1517 when button is pressed
         return ButtonSelection::Standby;
     }
     else if (adcValue < MAX_BUTTON_UP_ADC_VALUE)
     {
-        // ADC value is 2400mV when button is pressed
+        // ADC value is 2400 when button is pressed
         return ButtonSelection::Up;
     }
     else

@@ -116,6 +116,11 @@ void Webservice::loop()
 
 void Webservice::notifyClients(String key, String status)
 {
+    if (!isInitialized || !ws.count())
+    {
+        return;
+    }
+    ESP_LOGI(TAG, "Notify: key: %s, status: %s", key.c_str(), status.c_str());
     const uint8_t size = JSON_OBJECT_SIZE(3);
     StaticJsonDocument<size> json;
     json["key"] = key.c_str();
@@ -131,10 +136,7 @@ void Webservice::notifyClients(String key, String status)
     char buffer[size + 10];
     size_t len = serializeJson(json, buffer);
     ESP_LOGI(TAG, "json: %s", buffer);
-    if (ws.count() > 0)
-    {
-        ws.textAll(buffer, len);
-    }
+    ws.textAll(buffer, len);
 }
 
 void Webservice::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
@@ -178,7 +180,6 @@ void Webservice::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         _nonVolatileStorage->setFixClosingTime(fixClosingTime);
 
         notifyClients("feedback", "Data received");
-
         _cbDataReceived();
     }
 }

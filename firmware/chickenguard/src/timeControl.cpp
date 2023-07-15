@@ -32,9 +32,8 @@ static const timeZone_t timeZones[1] =
 };
 
 TimeControl::TimeControl(int8_t (*readBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, uint8_t *data),
-                         bool (*writeBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, const uint8_t *data)) : 
-                         _rtc(readBytes, writeBytes), 
-                         _timeZoneSet(false)
+                         bool (*writeBytes)(uint8_t i2c_address, uint8_t reg, uint8_t size, const uint8_t *data)) : _rtc(readBytes, writeBytes),
+                                                                                                                    _timeZoneSet(false)
 {
 }
 
@@ -71,11 +70,7 @@ bool TimeControl::init(String timeZone)
         if (setTimeZone(timeZone))
         {
             _timeZoneSet = true;
-            // Print local time
-            time(&now);
-            localtime_r(&now, &timeinfo);
-            strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-            ESP_LOGI(TAG, "The current local date/time is: %s", strftime_buf);
+            printLocalTime();
         }
     }
     return _rtc.enableSquareWave(false); // disable square wave output to save power
@@ -121,6 +116,7 @@ bool TimeControl::updateMcuTime(long utc, const String timeZone)
         ESP_LOGE(TAG, "Could not set RTC time");
         return false;
     }
+    printLocalTime();
     return setTimeZone(timeZone);
 }
 
@@ -156,11 +152,13 @@ bool TimeControl::setOpenAlarmSunrise(double latitude, double longitude)
     time_t utc;
     time(&utc);
     double transit, sunrise, sunset;
+    ESP_LOGI(TAG, "Calculating sunrise and sunset : UTC: %ld, lat: %f, long: %f", utc, latitude, longitude);
     calcSunriseSunset(utc, latitude, longitude, transit, sunrise, sunset);
-    uint8_t hour, minute;
-    doubleToHrMin(sunrise, &hour, &minute);
-    ESP_LOGI(TAG, "Next Sunrise alarm (local time): %02d:%02d", hour, minute);
-    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm1, toUtc(hour, minute));
+    ESP_LOGI(TAG, "Sunrise: %f, Sunset: %f", sunrise, sunset);
+    uint8_t hourUtc, minuteUtc;
+    doubleToHrMin(sunrise, &hourUtc, &minuteUtc);
+    ESP_LOGI(TAG, "Next Sunrise alarm (utc time): %02d:%02d", hourUtc, minuteUtc);
+    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm1, utcToUtcTimeObject(hourUtc, minuteUtc));
 }
 
 bool TimeControl::setCloseAlarmSunset(double latitude, double longitude)
@@ -173,11 +171,13 @@ bool TimeControl::setCloseAlarmSunset(double latitude, double longitude)
     time_t utc;
     time(&utc);
     double transit, sunrise, sunset;
+    ESP_LOGI(TAG, "Calculating sunrise and sunset : UTC: %ld, lat: %f, long: %f", utc, latitude, longitude);
     calcSunriseSunset(utc, latitude, longitude, transit, sunrise, sunset);
-    uint8_t hour, minute;
-    doubleToHrMin(sunset, &hour, &minute);
-    ESP_LOGI(TAG, "Next Sunset alarm (local time): %02d:%02d", hour, minute);
-    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm2, toUtc(hour, minute));
+    ESP_LOGI(TAG, "Sunrise: %f, Sunset: %f", sunrise, sunset);
+    uint8_t hourUtc, minuteUtc;
+    doubleToHrMin(sunset, &hourUtc, &minuteUtc);
+    ESP_LOGI(TAG, "Next Sunset alarm (utc time): %02d:%02d", hourUtc, minuteUtc);
+    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm2, utcToUtcTimeObject(hourUtc, minuteUtc));
 }
 
 bool TimeControl::setOpenAlarmFixTime(uint8_t hour, uint8_t minute)
@@ -188,7 +188,7 @@ bool TimeControl::setOpenAlarmFixTime(uint8_t hour, uint8_t minute)
         return false;
     }
     ESP_LOGI(TAG, "Next fix open alarm (local time): %02d:%02d", hour, minute);
-    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm1, toUtc(hour, minute));
+    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm1, localToUtcTimeObject(hour, minute));
 }
 
 bool TimeControl::setCloseAlarmFixTime(uint8_t hour, uint8_t minute)
@@ -199,7 +199,7 @@ bool TimeControl::setCloseAlarmFixTime(uint8_t hour, uint8_t minute)
         return false;
     }
     ESP_LOGI(TAG, "Next fix close alarm (local time): %02d:%02d", hour, minute);
-    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm2, toUtc(hour, minute));
+    return _rtc.setDailyAlarm(DS1337::AlarmType::Alarm2, localToUtcTimeObject(hour, minute));
 }
 
 void TimeControl::doubleToHrMin(double time, uint8_t *hour, uint8_t *minute)
@@ -221,17 +221,55 @@ bool TimeControl::disableAlarms()
  * @param minute
  * @return struct tm*
  */
-struct tm *TimeControl::toUtc(uint8_t hour, uint8_t minute)
+struct tm *TimeControl::utcToUtcTimeObject(uint8_t hourUtc, uint8_t minuteUtc)
+{
+    time_t dummyTime;
+    //Get current UTC time
+    time(&dummyTime);
+    //Convert to timeinfo
+    struct tm *timeinfo = gmtime(&dummyTime);
+    //Replace hour and minute
+    timeinfo->tm_hour = hourUtc;
+    timeinfo->tm_min = minuteUtc;
+    timeinfo->tm_sec = 0;
+    //Convert back to UTC (and fix weekday)
+    time_t utc = timegm(timeinfo);
+    //Convert back to timeinfo
+    gmtime_r(&utc, timeinfo);
+    return timeinfo;
+}
+
+/**
+ * @brief Convert hour and minute to UTC
+ * Useful for setting the alarm time, because the RTC is in UTC
+ * @param hour
+ * @param minute
+ * @return struct tm*
+ */
+struct tm *TimeControl::localToUtcTimeObject(uint8_t hourLocal, uint8_t minuteLocal)
 {
     time_t dummyTime;
     time(&dummyTime);
     struct tm *timeinfo = localtime(&dummyTime);
-    timeinfo->tm_hour = hour;
-    timeinfo->tm_min = minute;
+    timeinfo->tm_hour = hourLocal;
+    timeinfo->tm_min = minuteLocal;
     timeinfo->tm_sec = 0;
     time_t utc = mktime(timeinfo);
     gmtime_r(&utc, timeinfo);
     return timeinfo;
+}
+
+void TimeControl::printLocalTime()
+{
+    // Print local time
+    time_t now;
+    struct tm timeinfo;
+    char strftime_buf[64];
+
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+    ESP_LOGI(TAG, "The current local date/time is: %s", strftime_buf);
 }
 
 /**

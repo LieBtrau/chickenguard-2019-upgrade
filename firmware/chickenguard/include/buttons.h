@@ -15,6 +15,7 @@ public:
     ButtonReader(const int adcPin);
     ~ButtonReader();
     bool update();
+    bool isButtonStateStable() { return _debounceDelay.isExpired(); }
     ButtonSelection getButton() { return _lastButtonState; }
 private:
     ButtonSelection getPushedButton();

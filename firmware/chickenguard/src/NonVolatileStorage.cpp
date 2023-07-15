@@ -47,7 +47,7 @@ void NonVolatileStorage::restoreAll()
     }
 }
 
-float NonVolatileStorage::getFloat(const char *key, float defaultValue)
+float NonVolatileStorage::getFloat(const char *key, const float defaultValue) 
 {
     if (!_preferences.isKey(key))
     {
@@ -55,7 +55,8 @@ float NonVolatileStorage::getFloat(const char *key, float defaultValue)
     }
     return _preferences.getFloat(key, defaultValue);
 }
-uint8_t NonVolatileStorage::getUChar(const char *key, uint8_t defaultValue)
+
+uint8_t NonVolatileStorage::getUChar(const char *key, const uint8_t defaultValue)
 {
     if (!_preferences.isKey(key))
     {
@@ -64,7 +65,7 @@ uint8_t NonVolatileStorage::getUChar(const char *key, uint8_t defaultValue)
     return _preferences.getUChar(key, defaultValue);
 }
 
-String NonVolatileStorage::getString(const char *key, String defaultValue)
+String NonVolatileStorage::getString(const char *key, const String defaultValue)
 {
     if (!_preferences.isKey(key))
     {
@@ -90,7 +91,7 @@ void NonVolatileStorage::saveAll()
     _preferences.end();
 }
 
-void NonVolatileStorage::setGeoLocation(float latitude, float longitude)
+void NonVolatileStorage::setGeoLocation(const float latitude, const float longitude)
 {
     if (latitude < -90 || latitude > 90)
     {
@@ -102,8 +103,8 @@ void NonVolatileStorage::setGeoLocation(float latitude, float longitude)
         ESP_LOGE(TAG, "Longitude out of range: %2f", longitude);
         return;
     }
-    latitude = _latitude;
-    longitude = _longitude;
+    _latitude = latitude;
+    _longitude = longitude;
 }
 
 void NonVolatileStorage::getGeoLocation(float &latitude, float &longitude) const
@@ -118,7 +119,7 @@ void NonVolatileStorage::getFixOpeningTime(uint8_t& hour, uint8_t& minutes) cons
     minutes = _fixOpeningTime_minute;
 }
 
-void NonVolatileStorage::setFixOpeningTime(String hour_minutes)
+void NonVolatileStorage::setFixOpeningTime(const String hour_minutes)
 {
     uint8_t hour = 0;
     uint8_t minutes = 0;
@@ -136,7 +137,7 @@ void NonVolatileStorage::getFixClosingTime(uint8_t& hour, uint8_t& minutes) cons
     hour = _fixClosingTime_hour;
     minutes = _fixClosingTime_minute;
 }
-void NonVolatileStorage::setFixClosingTime(String hour_minutes)
+void NonVolatileStorage::setFixClosingTime(const String hour_minutes)
 {
     uint8_t hour = 0;
     uint8_t minutes = 0;
@@ -155,7 +156,7 @@ NonVolatileStorage::DoorControl NonVolatileStorage::getDoorControl() const { ret
  * The fixed strings are the same as defined in index.js
  * @param doorControl
  */
-void NonVolatileStorage::setDoorControl(String doorControl)
+void NonVolatileStorage::setDoorControl(const String doorControl)
 {
     if (doorControl.equals("manual"))
     {
@@ -176,7 +177,7 @@ void NonVolatileStorage::setDoorControl(String doorControl)
     }
 }
 
-void NonVolatileStorage::setTimeZone(String timeZone)
+void NonVolatileStorage::setTimeZone(const String timeZone)
 {
     _timeZone = timeZone;
 }
@@ -186,7 +187,7 @@ String NonVolatileStorage::getTimeZone() const
     return _timeZone;
 }
 
-bool NonVolatileStorage::parseTimeString(String hour_minutes, uint8_t &hour, uint8_t &minutes)
+bool NonVolatileStorage::parseTimeString(const String hour_minutes, uint8_t &hour, uint8_t &minutes)
 {
     if (hour_minutes.length() != 5)
     {
