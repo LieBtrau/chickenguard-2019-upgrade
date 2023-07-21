@@ -48,7 +48,7 @@ void setup()
     Serial.begin(115200);
     while (!Serial)
         ;
-    ESP_LOGD(TAG, "\r\nBuild %s\r\n", __DATE__ " " __TIME__);
+    ESP_LOGD(TAG, "\r\nBuild %s, utc: %lu\r\n", COMMIT_HASH, CURRENT_TIME);
 
     power.init();
     motor.init(power.getVoltage_mV());
