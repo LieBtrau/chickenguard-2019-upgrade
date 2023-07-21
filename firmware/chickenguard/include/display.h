@@ -11,6 +11,7 @@ public:
     ~Display();
     bool init(void (*delayFunc)(uint32_t));
     void show(const char *line1, const char *line2 = nullptr);
+    void off();
 
 private:
     const int LCD_COLUMS = 16;

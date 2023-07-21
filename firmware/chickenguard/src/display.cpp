@@ -31,10 +31,17 @@ void Display::show(const char *line1, const char *line2)
     _lcd.home();
     _lcd.setBacklight(true);
     _lcd.print(line1);
-    if(line2 == nullptr)
+    if (line2 == nullptr)
     {
         return;
     }
     _lcd.setCursor(0, 1);
     _lcd.print(line2);
+}
+
+void Display::off()
+{
+    _lcd.setBacklight(false);
+    _lcd.clear();
+    _lcd.home();
 }

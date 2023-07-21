@@ -102,11 +102,13 @@ bool powerControl::isBatteryLow() const
 
 void powerControl::powerOff()
 {
+    ESP_LOGI(TAG, "Powering off");
     delay(100); // wait for serial output to finish
     /**
      * @brief Power off the device when powered from the battery.
      */
     digitalWrite(EN_PWR, LOW);
+    delay(100); // wait for unit to power off
 
     // In case USB or debug-port is connected, the device will stay powered and we will arrive here.
     // Put the device in deep sleep to save power.

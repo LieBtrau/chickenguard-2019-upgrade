@@ -25,6 +25,7 @@ static void updateTime(long utc, const String timezone);
 static void setOpenDoorAlarm(NonVolatileStorage::DoorControl const doorControl);
 static void setCloseDoorAlarm(NonVolatileStorage::DoorControl const doorControl);
 static void handleButtonPress(ButtonReader::ButtonSelection buttonState);
+static void powerOff();
 
 static TimeControl timeControl(readBytes, writeBytes);
 static NonVolatileStorage config;
@@ -54,6 +55,19 @@ void setup()
     motor.init(power.getVoltage_mV());
     config.restoreAll();
     assert(i2c_hal_init(I2C_SDA, I2C_SCL));
+
+    // Check if woken up by button press
+    while (!button.isButtonStateStable())
+    {
+        delay(10);
+    }
+    ButtonReader::ButtonSelection buttonState = button.getButton();
+    if (buttonState != ButtonReader::ButtonSelection::None)
+    {
+
+        handleButtonPress(buttonState);
+    }
+
     display.init(delayMicroseconds);
 
     assert(timeControl.init(config.getTimeZone()));
@@ -65,16 +79,6 @@ void setup()
         webserver.setup();
     }
 
-    // Check if woken up by button press
-    while (!button.isButtonStateStable())
-    {
-        delay(10);
-    }
-    ButtonReader::ButtonSelection buttonState = button.getButton();
-    if (buttonState != ButtonReader::ButtonSelection::None)
-    {
-        handleButtonPress(buttonState);
-    }
     ESP_LOGD(TAG, "Ready to rumble");
     batteryStatusDelay.start(1000, AsyncDelay::MILLIS);
 }
@@ -117,7 +121,7 @@ void loop()
     {
         // Motor has stopped
         ESP_LOGI(TAG, "Motor has stopped");
-        power.powerOff();
+        powerOff();
     }
     motorRunning = currentMotorRunning;
 }
@@ -132,8 +136,7 @@ void webConfigDone()
     setOpenDoorAlarm(config.getDoorControl());
     setCloseDoorAlarm(config.getDoorControl());
 
-    // Power off
-    power.powerOff();
+    powerOff();
 }
 
 void updateTime(long utc, const String timezone)
@@ -228,4 +231,11 @@ void displayWifiCredentials()
     char password[16];
     sprintf(password, "Pass: %s", WIFI_PASS);
     display.show(ssid, password);
+}
+
+void powerOff()
+{
+    ESP_LOGI(TAG, "Power off");
+    display.off();
+    power.powerOff();
 }
