@@ -25,7 +25,7 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
 
 ## Revision history
 ### Revision 1.02
-  * [Schematic design]("https://personal-viewer.365.altium.com/client/index.html?feature=embed&source=66EF0726-05D2-429F-9004-3D691D80F956&activeView=SCH")
+  * [Schematic design](https://personal-viewer.365.altium.com/client/index.html?feature=embed&source=66EF0726-05D2-429F-9004-3D691D80F956&activeView=SCH)
   * Patched PCB of 1.01.  No new PCB layout done
 
 
