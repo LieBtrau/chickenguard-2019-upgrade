@@ -24,13 +24,18 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
 * [Product Requirement Document](./docs/PRD.md)
 
 ## Revision history
-### Revision 1.1 : Using an external RTC
+### Revision 1.02
+  * [Schematic design]("https://personal-viewer.365.altium.com/client/index.html?feature=embed&source=66EF0726-05D2-429F-9004-3D691D80F956&activeView=SCH")
+  * Patched PCB of 1.01.  No new PCB layout done
+
+
+### Revision 1.01 : Using an external RTC
   * PCB cost reduction : layer count reduced from 4 to 2.
   * [Concept](./docs/R1.1/concept.md)
   * [Technical study](./docs/R1.1/technical-study_1.1.ipynb)
   * [Hardware design](https://365.altium.com/files/C9F51258-D859-4807-ACB1-E5928658F052) : for users with a free [AltiumLive account](https://365.altium.com/signin?ReturnUrl=https%3A%2F%2Fwww.altium.com%2Fviewer%2F).
 
-### Revision 1.0 : Using the internal RTC of the ESP32
+### Revision 1.00 : Using the internal RTC of the ESP32
   * PCB design created, but never manufactured
   * [Concept](./docs/R1.0/concept.md)
   * [Technical study](./docs/R1.0/technical-study_1.0.ipynb)
