@@ -23,6 +23,11 @@ Open-source replacement for the electronics of the [ChickenGuard](https://www.ch
 
 * [Product Requirement Document](./docs/PRD.md)
 
+## Future work
+The initial goal was to send the geolocation of the smartphone to the ESP32, so it can calculate the sunrise and sunset times.  That didn't work, because the ESP32 captive portal is not using HTTPS with a valid certificate.  The smartphone refuses to send the geolocation to an insecure website.
+
+Instead of running a webserver on the ESP32.  Web Bluetooth (example [here](https://randomnerdtutorials.com/esp32-web-bluetooth/)) could be used.  The smartphone downloads a web page from the internet.  Using this info, the smartphone can connect to the ESP32 using Web Bluetooth.  Maybe that will allow the smartphone to send the geolocation to the ESP32. 
+
 ## Revision history
 ### Revision 1.02
   * [Schematic design](https://personal-viewer.365.altium.com/client/index.html?feature=embed&source=66EF0726-05D2-429F-9004-3D691D80F956&activeView=SCH)
